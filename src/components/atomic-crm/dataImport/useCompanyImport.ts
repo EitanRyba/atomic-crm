@@ -4,7 +4,12 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { createEachRow } from "./createEachRow";
-import { toConfiguredValue, toNumber, toText } from "./parseCell";
+import {
+  competitorChoices,
+  continentChoices,
+  type ChoiceDefinition,
+} from "../misc/prospectingChoices";
+import { toConfiguredValue, toInteger, toNumber, toText } from "./parseCell";
 import type { ImportCell, ProcessImportBatch } from "./types";
 
 /**
@@ -36,6 +41,14 @@ export function useCompanyImport(): ProcessImportBatch {
               description: toText(row.description),
               revenue: toText(row.revenue),
               tax_identifier: toText(row.tax_identifier),
+              continent: toConfiguredValue(row.continent, continentOptions),
+              network: toText(row.network),
+              headcount: toInteger(row.headcount),
+              headcount_source: toText(row.headcount_source),
+              current_competitor: toConfiguredValue(
+                row.current_competitor,
+                competitorOptions,
+              ),
               sales_id: identity?.id,
               created_at: new Date().toISOString(),
             },
@@ -45,6 +58,12 @@ export function useCompanyImport(): ProcessImportBatch {
     [companySectors, dataProvider, identity?.id],
   );
 }
+
+const toOptions = (choices: ChoiceDefinition[]) =>
+  choices.map(({ id, name }) => ({ value: id, label: name }));
+
+const continentOptions = toOptions(continentChoices);
+const competitorOptions = toOptions(competitorChoices);
 
 /**
  * `size` is a bucket id, not a headcount, so an arbitrary CSV number is coerced

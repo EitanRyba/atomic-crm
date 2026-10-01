@@ -1,4 +1,12 @@
 import { CRM } from "@/components/atomic-crm/root/CRM";
+import {
+  humandCompanySectors,
+  humandDealCategories,
+  humandDealPipelineStatuses,
+  humandDealStages,
+  humandNoteStatuses,
+  humandTaskTypes,
+} from "./humandConfiguration";
 
 /**
  * Application entry point
@@ -19,18 +27,21 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
  * Logos must be an imported asset, an absolute URL, or a data URI — never a
  * route-relative path like "./img/logo.png", which breaks on nested routes.
  *
- * @example
- * import logoDark from "./logo-dark.svg";
- * import logoLight from "./logo-light.svg";
- *
- * const App = () => (
- *    <CRM
- *       darkModeLogo={logoDark}
- *       lightModeLogo={logoLight}
- *       title="Acme CRM"
- *    />
- * );
+ * This instance is configured for selling and implementing Humand
+ * (see ./humandConfiguration.ts). Labels can also be edited later from the
+ * in-app Settings page, which stores them in the database.
  */
-const App = () => <CRM />;
+const App = () => (
+  <CRM
+    title="Humand CRM"
+    currency="USD"
+    companySectors={humandCompanySectors}
+    dealCategories={humandDealCategories}
+    dealPipelineStatuses={humandDealPipelineStatuses}
+    dealStages={humandDealStages}
+    noteStatuses={humandNoteStatuses}
+    taskTypes={humandTaskTypes}
+  />
+);
 
 export default App;

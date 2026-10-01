@@ -19,6 +19,7 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
+import { buyerRoleChoices, translateChoices } from "../misc/prospectingChoices";
 import { StatusSelector } from "../notes";
 import type { Sale, Contact } from "../types";
 import { Avatar } from "./Avatar";
@@ -86,6 +87,12 @@ const ContactPositionInputs = () => {
         {translate("resources.contacts.field_categories.position")}
       </h6>
       <TextInput source="title" helperText={false} />
+      <SelectInput
+        source="buyer_role"
+        choices={translateChoices(buyerRoleChoices, translate)}
+        translateChoice={false}
+        helperText={false}
+      />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
       </ReferenceInput>

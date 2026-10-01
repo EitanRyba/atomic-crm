@@ -7,6 +7,7 @@ import {
 } from "ra-core";
 import { TextField } from "@/components/admin/text-field";
 import { formatLocalizedDate } from "../misc/RelativeDate";
+import { buyerRoleChoices, getChoiceLabel } from "../misc/prospectingChoices";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import type { Contact } from "../types";
 
@@ -26,9 +27,19 @@ export const ContactBackgroundInfo = () => {
     ? formatLocalizedDate(record.last_seen, locale)
     : "";
   const formattedFirstSeen = formatLocalizedDate(record.first_seen, locale);
+  const buyerRoleLabel = getChoiceLabel(
+    buyerRoleChoices,
+    record.buyer_role,
+    translate,
+  );
 
   return (
     <div>
+      {buyerRoleLabel && (
+        <p className="pb-2 text-sm">
+          {translate("resources.contacts.fields.buyer_role")}: {buyerRoleLabel}
+        </p>
+      )}
       <WithRecord<Contact>
         render={(record) =>
           record?.background ? (

@@ -2,6 +2,8 @@ import { useDataProvider, useGetIdentity } from "ra-core";
 import { useCallback, useMemo } from "react";
 
 import type { Tag } from "../types";
+import { buyerRoleChoices } from "../misc/prospectingChoices";
+import { toConfiguredValue } from "../dataImport/parseCell";
 import { createEachRow } from "../dataImport/createEachRow";
 import { fetchRecordsWithCache } from "../dataImport/fetchRecordsWithCache";
 import { useCompanyResolver } from "../dataImport/useCompanyResolver";
@@ -26,6 +28,7 @@ export type ContactImportSchema = {
   status: string;
   tags: string;
   linkedin_url: string;
+  buyer_role?: string;
 };
 
 export function useContactImport() {
@@ -86,6 +89,7 @@ export function useContactImport() {
             company: companyName,
             tags: tagNames,
             linkedin_url,
+            buyer_role,
           }) => {
             const email_jsonb = [
               { email: email_work, type: "Work" },
@@ -125,6 +129,10 @@ export function useContactImport() {
                 tags: tagList.map((tag) => tag.id),
                 sales_id: user?.identity?.id,
                 linkedin_url,
+                buyer_role: toConfiguredValue(
+                  buyer_role ?? null,
+                  buyerRoleOptions,
+                ),
               },
             });
           },
@@ -136,6 +144,11 @@ export function useContactImport() {
 
   return processBatch;
 }
+
+const buyerRoleOptions = buyerRoleChoices.map(({ id, name }) => ({
+  value: id,
+  label: name,
+}));
 
 const parseTags = (tags: string) =>
   tags

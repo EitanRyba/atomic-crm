@@ -2,6 +2,7 @@ import { required, useRecordContext, useTranslate } from "ra-core";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { NumberInput } from "@/components/admin/number-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
+import {
+  competitorChoices,
+  continentChoices,
+  translateChoices,
+} from "../misc/prospectingChoices";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
@@ -40,6 +46,7 @@ export const CompanyInputs = () => {
         </div>
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <div className="flex flex-col gap-8 flex-1">
+          <CompanyProspectingInputs />
           <CompanyAddressInputs />
           <CompanyAdditionalInformationInputs />
         </div>
@@ -118,6 +125,34 @@ const CompanyContextInputs = () => {
       <SelectInput source="size" choices={translatedSizes} helperText={false} />
       <TextInput source="revenue" helperText={false} />
       <TextInput source="tax_identifier" helperText={false} />
+    </div>
+  );
+};
+
+const CompanyProspectingInputs = () => {
+  const translate = useTranslate();
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">
+        {translate("resources.companies.field_categories.prospecting", {
+          _: "Humand prospecting",
+        })}
+      </h6>
+      <TextInput source="network" helperText={false} />
+      <SelectInput
+        source="continent"
+        choices={translateChoices(continentChoices, translate)}
+        translateChoice={false}
+        helperText={false}
+      />
+      <NumberInput source="headcount" min={0} step={1} helperText={false} />
+      <TextInput source="headcount_source" helperText={false} />
+      <SelectInput
+        source="current_competitor"
+        choices={translateChoices(competitorChoices, translate)}
+        translateChoice={false}
+        helperText={false}
+      />
     </div>
   );
 };

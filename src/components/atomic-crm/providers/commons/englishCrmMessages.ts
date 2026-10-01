@@ -22,6 +22,11 @@ export const englishCrmMessages = {
         description: "Description",
         context_links: "Context links",
         sales_id: "Account manager",
+        continent: "Continent",
+        network: "Network / association",
+        headcount: "Headcount (employees)",
+        headcount_source: "Headcount source",
+        current_competitor: "Current competitor",
       },
       empty: {
         description: "It seems your company list is empty.",
@@ -35,6 +40,7 @@ export const englishCrmMessages = {
         additional_info: "Additional information",
         address: "Address",
         context: "Context",
+        prospecting: "Humand prospecting",
       },
       action: {
         create: "Create Company",
@@ -54,6 +60,18 @@ export const englishCrmMessages = {
         ten_to_forty_nine_employees: "10-49 employees",
         fifty_to_two_hundred_forty_nine_employees: "50-249 employees",
         two_hundred_fifty_or_more_employees: "250 or more employees",
+      },
+      continents: {
+        america: "Americas",
+        europe: "Europe",
+        asia: "Asia",
+        africa: "Africa",
+        oceania: "Oceania",
+      },
+      competitors: {
+        whatsapp_excel: "WhatsApp + bulletin board + Excel",
+        none: "None",
+        other: "Other",
       },
       autocomplete: {
         create_error: "An error occurred while creating the company",
@@ -85,6 +103,7 @@ export const englishCrmMessages = {
         background: "Background info (bio, how you met, etc)",
         has_newsletter: "Has newsletter",
         sales_id: "Account manager",
+        buyer_role: "Buying role",
       },
       action: {
         add: "Add contact",
@@ -120,6 +139,14 @@ export const englishCrmMessages = {
         personal_info_types: {
           work: "Work",
           home: "Home",
+          other: "Other",
+        },
+        buyer_roles: {
+          partner: "Partner",
+          hr: "HR / People",
+          internal_comms: "Internal communications",
+          it: "IT",
+          management: "Management",
           other: "Other",
         },
       },

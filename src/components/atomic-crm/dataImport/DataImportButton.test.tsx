@@ -170,6 +170,36 @@ describe("DataImportButton", () => {
     expect(companies[0].size).toBe(50);
   });
 
+  it("imports the humand prospecting columns of a company", async () => {
+    const { dataProvider, screen } = await renderImport(useCompanyImport, [
+      {
+        name: "Burgess Hodgson",
+        continent: "Europe",
+        network: "Russell Bedford",
+        headcount: 180.4,
+        headcount_source: "Network press release",
+        current_competitor: "microsoft-viva",
+      },
+      { name: "Unknown Co", continent: "Atlantis", current_competitor: "Acme" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies[0]).toMatchObject({
+      // A choice may be given by its label or by its stored id
+      continent: "europe",
+      network: "Russell Bedford",
+      headcount: 180,
+      headcount_source: "Network press release",
+      current_competitor: "microsoft-viva",
+    });
+    // Unknown choices are dropped rather than stored as free text
+    expect(companies[1].continent).toBeUndefined();
+    expect(companies[1].current_competitor).toBeUndefined();
+  });
+
   it("hides a resource the running app does not register", async () => {
     // The mobile app has no deals screens, so importing deals would create
     // records the user could never see.

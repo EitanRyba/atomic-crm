@@ -118,6 +118,7 @@ export const mergeContacts = async (
       first_name: winnerContact.first_name ?? loserContact.first_name,
       last_name: winnerContact.last_name ?? loserContact.last_name,
       title: winnerContact.title ?? loserContact.title,
+      buyer_role: winnerContact.buyer_role ?? loserContact.buyer_role,
       company_id: winnerContact.company_id ?? loserContact.company_id,
       email_jsonb: mergedEmails,
       phone_jsonb: mergedPhones,

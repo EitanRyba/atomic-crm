@@ -70,6 +70,11 @@ export type Company = {
   tax_identifier: string;
   country: string;
   context_links?: string[];
+  continent?: string | null;
+  network?: string | null;
+  headcount?: number | null;
+  headcount_source?: string | null;
+  current_competitor?: string | null;
   nb_contacts?: number;
   nb_deals?: number;
 } & Pick<RaRecord, "id">;
@@ -101,6 +106,7 @@ export type Contact = {
   status: string;
   background: string;
   phone_jsonb: PhoneNumberAndType[];
+  buyer_role?: string | null;
   nb_tasks?: number;
   company_name?: string;
 } & Pick<RaRecord, "id">;

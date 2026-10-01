@@ -19,6 +19,11 @@ import type { Company } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 import { useGetSalesName } from "../sales/useGetSalesName";
+import {
+  competitorChoices,
+  continentChoices,
+  getChoiceLabel,
+} from "../misc/prospectingChoices";
 
 interface CompanyAsideProps {
   link?: string;
@@ -40,6 +45,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
       </div>
 
       <CompanyInfo record={record} />
+
+      <ProspectingInfo record={record} />
 
       <AddressInfo record={record} />
 
@@ -145,6 +152,69 @@ export const ContextInfo = ({ record }: { record: Company }) => {
         <span>
           {translate("resources.companies.fields.tax_identifier", {})}
           : <TextField source="tax_identifier" />
+        </span>
+      )}
+    </AsideSection>
+  );
+};
+
+export const ProspectingInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
+  const continentLabel = getChoiceLabel(
+    continentChoices,
+    record.continent,
+    translate,
+  );
+  const competitorLabel = getChoiceLabel(
+    competitorChoices,
+    record.current_competitor,
+    translate,
+  );
+  const hasHeadcount =
+    record.headcount !== null && record.headcount !== undefined;
+  if (
+    !record.network &&
+    !record.country &&
+    !continentLabel &&
+    !hasHeadcount &&
+    !competitorLabel
+  ) {
+    return null;
+  }
+
+  const field = (key: string) => translate(`resources.companies.fields.${key}`);
+
+  return (
+    <AsideSection
+      title={translate("resources.companies.field_categories.prospecting")}
+    >
+      {record.network && (
+        <span>
+          {field("network")}: {record.network}
+        </span>
+      )}
+      {(record.country || continentLabel) && (
+        <span>
+          {field("country")}:{" "}
+          {[record.country, continentLabel].filter(Boolean).join(" · ")}
+        </span>
+      )}
+      {hasHeadcount && (
+        <span>
+          {field("headcount")}:{" "}
+          {new Intl.NumberFormat(locale).format(record.headcount as number)}
+          {record.headcount_source && (
+            <span className="text-muted-foreground">
+              {" "}
+              ({record.headcount_source})
+            </span>
+          )}
+        </span>
+      )}
+      {competitorLabel && (
+        <span>
+          {field("current_competitor")}: {competitorLabel}
         </span>
       )}
     </AsideSection>
