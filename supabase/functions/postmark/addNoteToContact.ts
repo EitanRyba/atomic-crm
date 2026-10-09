@@ -2,6 +2,24 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import type { Attachment } from "./extractAndUploadAttachments.ts";
 import { MAIL_PROVIDERS } from "./mailProvider.const.ts";
 
+/**
+ * The "Por definir" system company, which holds the contacts whose company is
+ * unknown. The migration creates it and triggers prevent deleting it.
+ */
+export const getPlaceholderCompany = async () => {
+  const { data, error } = await supabaseAdmin
+    .from("companies")
+    .select("*")
+    .eq("is_placeholder", true)
+    .maybeSingle();
+  if (error || !data) {
+    throw new Error(
+      `Could not fetch the placeholder company from database, error: ${error?.message ?? "not found"}`,
+    );
+  }
+  return data;
+};
+
 export const getOrCreateCompanyFromDomain = async ({
   domain,
   salesId,
@@ -14,8 +32,10 @@ export const getOrCreateCompanyFromDomain = async ({
   website: string;
 }) => {
   if (MAIL_PROVIDERS.includes(domain)) {
-    // We don't want to create companies for generic mail providers, as they are not really companies and it would pollute the database with useless entries.
-    return null;
+    // We don't want to create companies for generic mail providers, as they are
+    // not really companies and it would pollute the database with useless
+    // entries: the contact waits in "Por definir" until its company is known.
+    return getPlaceholderCompany();
   }
 
   // Check if the company already exists
@@ -23,6 +43,7 @@ export const getOrCreateCompanyFromDomain = async ({
     await supabaseAdmin
       .from("companies")
       .select("*")
+      .eq("is_placeholder", false)
       .or(`website.eq.${website},name.eq.${companyName},name.eq.${domain}`)
       .maybeSingle();
   if (fetchCompanyError) {
@@ -95,7 +116,7 @@ export const getOrCreateContactFromEmailInfo = async ({
       first_name: firstName,
       last_name: lastName,
       email_jsonb: [{ email, type: "Work" }],
-      company_id: company ? company.id : null,
+      company_id: company.id,
       sales_id: salesId,
       first_seen: new Date(),
       last_seen: new Date(),

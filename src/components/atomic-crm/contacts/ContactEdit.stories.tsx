@@ -2,7 +2,7 @@ import type { Meta } from "@storybook/react-vite";
 
 import { ContactEdit } from "./ContactEdit";
 import { Route, Routes } from "react-router";
-import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
+import { buildCompany, buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import type { DataProvider } from "ra-core";
 
 const meta = {
@@ -27,9 +27,12 @@ export const ContactEditBasic = ({
   <StoryWrapper
     initialEntries={["/contacts/1"]}
     data={{
+      // a contact always belongs to a company
+      companies: [buildCompany()],
       contacts: [
         buildContact({
           id: 1,
+          company_id: 1,
           email_jsonb: [],
           phone_jsonb: [],
         }),
@@ -54,9 +57,12 @@ export const ContactEditWithEmailsAndPhones = ({
   <StoryWrapper
     initialEntries={["/contacts/1"]}
     data={{
+      // a contact always belongs to a company
+      companies: [buildCompany()],
       contacts: [
         buildContact({
           id: 1,
+          company_id: 1,
           email_jsonb: [{ email: "ada@example.com", type: "Work" }],
           phone_jsonb: [{ number: "0123456789", type: "Work" }],
         }),
@@ -75,9 +81,12 @@ export const ContactEditWithError = () => (
   <StoryWrapper
     initialEntries={["/contacts/1"]}
     data={{
+      // a contact always belongs to a company
+      companies: [buildCompany()],
       contacts: [
         buildContact({
           id: 1,
+          company_id: 1,
           email_jsonb: [],
           phone_jsonb: [],
         }),

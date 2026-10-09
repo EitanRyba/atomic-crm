@@ -1,6 +1,8 @@
 import * as Papa from "papaparse";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import type { ImportBatchResult, ImportNotices } from "../dataImport/types";
+
 export type ImportState =
   | {
       state: "idle";
@@ -14,6 +16,9 @@ export type ImportState =
       rowCount: number;
       importCount: number;
       errorCount: number;
+
+      // Notices raised by the batches, e.g. contacts sent to "Por definir"
+      notices: Required<ImportNotices>;
 
       // The remaining time in milliseconds
       remainingTime: number | null;
@@ -31,8 +36,8 @@ type usePapaParseProps<T> = {
   // Columns to keep as text, because a leading zero is meaningful there
   textColumns?: string[];
 
-  // processBatch returns the number of imported items
-  processBatch(batch: T[]): Promise<number>;
+  // processBatch returns the number of imported items, possibly with notices
+  processBatch(batch: T[]): Promise<number | ImportBatchResult>;
 };
 
 export function usePapaParse<T>({
@@ -73,6 +78,7 @@ export function usePapaParse<T>({
             rowCount: results.data.length,
             errorCount: results.errors.length,
             importCount: 0,
+            notices: { placeholderContacts: 0, duplicateCompanies: 0 },
             remainingTime: null,
           });
 
@@ -88,7 +94,9 @@ export function usePapaParse<T>({
               // A batch reports how many of its rows the backend accepted, so
               // the rows it refused count as errors while the records that did
               // land are not reported as failures.
-              const created = await processBatch(batch);
+              const result = await processBatch(batch);
+              const { created, notices = {} } =
+                typeof result === "number" ? { created: result } : result;
               totalTime += Date.now() - start;
 
               const meanTime = totalTime / (i + batch.length);
@@ -101,6 +109,14 @@ export function usePapaParse<T>({
                     ...previous,
                     importCount,
                     errorCount,
+                    notices: {
+                      placeholderContacts:
+                        previous.notices.placeholderContacts +
+                        (notices.placeholderContacts ?? 0),
+                      duplicateCompanies:
+                        previous.notices.duplicateCompanies +
+                        (notices.duplicateCompanies ?? 0),
+                    },
                     remainingTime:
                       meanTime *
                       (results.data.length - importCount - errorCount),

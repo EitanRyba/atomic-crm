@@ -41,6 +41,8 @@ import {
   ContextInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
+import { CompanyBadges } from "./CompanyBadges";
+import { PlaceholderCompanyNotice } from "./PlaceholderCompanyNotice";
 
 export const CompanyShow = () => {
   const isMobile = useIsMobile();
@@ -76,8 +78,10 @@ const CompanyShowContentMobile = () => {
             <CompanyAvatar />
             <div className="mx-3 flex-1">
               <h2 className="text-2xl font-bold">{record.name}</h2>
+              <CompanyBadges record={record} className="mt-1" />
             </div>
           </div>
+          {record.is_placeholder ? <PlaceholderCompanyNotice /> : null}
         </div>
         <CompanyInfo record={record} />
         <AddressInfo record={record} />
@@ -108,17 +112,30 @@ const CompanyShowContent = () => {
 
   if (isPending || !record) return null;
 
+  const showDeals = !!record.is_client && !!record.nb_deals;
+  const showReferredClients = !!record.is_referral;
+  const nbTabs = 2 + (showDeals ? 1 : 0) + (showReferredClients ? 1 : 0);
+
   return (
     <div className="mt-2 flex pb-2 gap-8">
       <div className="flex-1">
         <Card>
           <CardContent>
-            <div className="flex mb-3">
+            <div className="flex mb-3 items-center">
               <CompanyAvatar />
-              <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              <h5 className="text-xl ml-2">{record.name}</h5>
+              <CompanyBadges record={record} className="ml-3 flex-1" />
             </div>
+            {record.is_placeholder ? (
+              <PlaceholderCompanyNotice className="mb-3" />
+            ) : null}
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList
+                className="grid w-full"
+                style={{
+                  gridTemplateColumns: `repeat(${nbTabs}, minmax(0, 1fr))`,
+                }}
+              >
                 <TabsTrigger value="activity">
                   {translate("crm.common.activity")}
                 </TabsTrigger>
@@ -129,11 +146,16 @@ const CompanyShowContent = () => {
                         smart_count: record.nb_contacts ?? 0,
                       })}
                 </TabsTrigger>
-                {record.nb_deals ? (
+                {showDeals ? (
                   <TabsTrigger value="deals">
                     {translate("resources.companies.nb_deals", {
                       smart_count: record.nb_deals ?? 0,
                     })}
+                  </TabsTrigger>
+                ) : null}
+                {showReferredClients ? (
+                  <TabsTrigger value="referred_clients">
+                    {translate("resources.companies.referred_clients")}
                   </TabsTrigger>
                 ) : null}
               </TabsList>
@@ -168,13 +190,25 @@ const CompanyShowContent = () => {
                 )}
               </TabsContent>
               <TabsContent value="deals">
-                {record.nb_deals ? (
+                {showDeals ? (
                   <ReferenceManyField
                     reference="deals"
                     target="company_id"
                     sort={{ field: "name", order: "ASC" }}
                   >
                     <DealsIterator />
+                  </ReferenceManyField>
+                ) : null}
+              </TabsContent>
+              <TabsContent value="referred_clients">
+                {showReferredClients ? (
+                  <ReferenceManyField
+                    reference="companies"
+                    target="referred_by_company_id"
+                    sort={{ field: "name", order: "ASC" }}
+                    perPage={100}
+                  >
+                    <ReferredClientsIterator />
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>
@@ -235,6 +269,35 @@ const ContactsIterator = () => {
               )}
             </RouterLink>
           </div>
+        </RecordContextProvider>
+      ))}
+    </div>
+  );
+};
+
+const ReferredClientsIterator = () => {
+  const translate = useTranslate();
+  const { data: companies, error, isPending } = useListContext<Company>();
+  if (isPending || error) return null;
+  if (!companies.length) {
+    return (
+      <p className="p-4 text-sm text-muted-foreground">
+        {translate("resources.companies.no_referred_clients")}
+      </p>
+    );
+  }
+  return (
+    <div>
+      {companies.map((company) => (
+        <RecordContextProvider key={company.id} value={company}>
+          <RouterLink
+            to={`/companies/${company.id}/show`}
+            className="flex items-center gap-3 hover:bg-muted py-2 px-2 transition-colors text-sm"
+          >
+            <CompanyAvatar width={20} height={20} />
+            <span className="font-medium flex-1">{company.name}</span>
+            <CompanyBadges record={company} />
+          </RouterLink>
         </RecordContextProvider>
       ))}
     </div>

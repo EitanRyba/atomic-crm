@@ -27,6 +27,10 @@ const getRandomContactDetailsType = () =>
 export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
   const nbAvailblePictures = 223;
   let numberOfContacts = 0;
+  const placeholder = db.companies.find((company) => company.is_placeholder)!;
+  const realCompanies = db.companies.filter(
+    (company) => !company.is_placeholder,
+  );
 
   return Array.from(Array(size).keys()).map((id) => {
     const has_avatar =
@@ -63,11 +67,16 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       numberOfContacts++;
     }
 
-    // choose company with people left to know
+    // A few contacts wait in "Por definir" until their company is known,
+    // the others go to a company with people left to know
     let company: Company;
-    do {
-      company = random.arrayElement(db.companies);
-    } while ((company.nb_contacts ?? 0) >= maxContacts[company.size]);
+    if (id % 50 === 7) {
+      company = placeholder;
+    } else {
+      do {
+        company = random.arrayElement(realCompanies);
+      } while ((company.nb_contacts ?? 0) >= maxContacts[company.size]);
+    }
     company.nb_contacts = (company.nb_contacts ?? 0) + 1;
 
     const first_seen = randomDate(new Date(company.created_at)).toISOString();
@@ -81,6 +90,9 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       title: title.charAt(0).toUpperCase() + title.substr(1),
       company_id: company.id,
       company_name: company.name,
+      company_is_placeholder: company.is_placeholder ?? false,
+      company_is_client: company.is_client ?? false,
+      company_is_referral: company.is_referral ?? false,
       email_jsonb,
       phone_jsonb,
       background: lorem.sentence(),
@@ -93,7 +105,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       tags: random
         .arrayElements(db.tags, random.arrayElement([0, 0, 0, 1, 1, 2]))
         .map((tag) => tag.id), // finalize
-      sales_id: company.sales_id!,
+      sales_id: company.sales_id ?? 0,
       nb_tasks: 0,
       linkedin_url: null,
       buyer_role: null,

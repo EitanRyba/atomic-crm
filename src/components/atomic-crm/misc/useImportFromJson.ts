@@ -12,6 +12,7 @@ import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
 import { mapSizeToCategory } from "../companies/sizes";
+import { getPlaceholderCompany } from "../companies/placeholderCompany";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { contactGender } from "../contacts/contactModel";
 
@@ -139,6 +140,10 @@ export const useImportFromJson = (): [
       contacts: {},
       tags: {},
     };
+    // The "Por definir" company, fetched once per import
+    let placeholder: ReturnType<typeof getPlaceholderCompany> | undefined;
+    const getPlaceholder = () =>
+      (placeholder ??= getPlaceholderCompany(dataProvider));
 
     const importSale = async (
       dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
@@ -250,6 +255,9 @@ export const useImportFromJson = (): [
         const { data } = await dataProvider.create("companies", {
           data: {
             name: dataToImport.name.trim(),
+            // Imported companies are the clients Humand sells to
+            is_client: true,
+            is_referral: false,
             description: dataToImport.description?.trim(),
             city: dataToImport.city?.trim(),
             country: dataToImport.country?.trim(),
@@ -372,9 +380,11 @@ export const useImportFromJson = (): [
             linkedin_url: dataToImport.linkedin_url?.trim(),
             gender: gender || undefined,
             has_newsletter: !!dataToImport.has_newsletter,
-            company_id: dataToImport.company_id
-              ? idsMaps.companies[dataToImport.company_id]
-              : undefined,
+            // A contact without a known company waits in "Por definir"
+            company_id:
+              (dataToImport.company_id
+                ? idsMaps.companies[dataToImport.company_id]
+                : undefined) ?? (await getPlaceholder()).id,
             email_jsonb: Array.isArray(dataToImport.emails)
               ? dataToImport.emails
               : undefined,

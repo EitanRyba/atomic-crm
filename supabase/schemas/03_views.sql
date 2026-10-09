@@ -98,7 +98,19 @@ select
     c.headcount_source,
     c.current_competitor,
     count(distinct d.id) as nb_deals,
-    count(distinct co.id) as nb_contacts
+    count(distinct co.id) as nb_contacts,
+    c.is_client,
+    c.is_referral,
+    c.is_placeholder,
+    c.referred_by_company_id,
+    (
+        select r.name from public.companies r
+        where r.id = c.referred_by_company_id
+    ) as referred_by_name,
+    (
+        select count(*) from public.companies rc
+        where rc.referred_by_company_id = c.id
+    ) as nb_referred_clients
 from public.companies c
     left join public.deals d on c.id = d.company_id
     left join public.contacts co on c.id = co.company_id
@@ -127,11 +139,14 @@ select
     (jsonb_path_query_array(co.email_jsonb, '$[*]."email"'))::text as email_fts,
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,
-    count(distinct t.id) filter (where t.done_date is null) as nb_tasks
+    count(distinct t.id) filter (where t.done_date is null) as nb_tasks,
+    c.is_placeholder as company_is_placeholder,
+    c.is_client as company_is_client,
+    c.is_referral as company_is_referral
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
-group by co.id, c.name;
+group by co.id, c.id;
 
 create or replace view public.init_state with (security_invoker = off) as
 select count(sub.id) as is_initialized

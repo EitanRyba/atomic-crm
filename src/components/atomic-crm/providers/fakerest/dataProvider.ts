@@ -14,6 +14,7 @@ import type {
   ContactNote,
   Deal,
   DealNote,
+  DeleteCompanyContactsMode,
   Sale,
   SalesFormData,
   SignUpData,
@@ -109,8 +110,45 @@ async function fetchAndUpdateCompanyData(
   }
 
   newData.company_name = company.name;
+  newData.company_is_placeholder = company.is_placeholder ?? false;
+  newData.company_is_client = company.is_client ?? false;
+  newData.company_is_referral = company.is_referral ?? false;
   return { ...params, data: newData };
 }
+
+/**
+ * The database protects the "Por definir" company with triggers; the fake
+ * backend mirrors those rules so that the demo behaves the same way.
+ */
+const assertValidCompanyChange = (
+  data: Partial<Company>,
+  previous: Partial<Company> | undefined,
+  placeholderIds: Identifier[],
+) => {
+  if (
+    previous &&
+    data.is_placeholder !== undefined &&
+    data.is_placeholder !== (previous.is_placeholder ?? false)
+  ) {
+    throw new Error("The placeholder flag of a company cannot be changed");
+  }
+  const isPlaceholder = previous?.is_placeholder ?? data.is_placeholder;
+  if (!isPlaceholder) {
+    if (
+      data.referred_by_company_id != null &&
+      placeholderIds.includes(data.referred_by_company_id)
+    ) {
+      throw new Error("A company cannot be referred by the system company");
+    }
+    return;
+  }
+  if (previous && data.name !== undefined && data.name !== previous.name) {
+    throw new Error("The system company cannot be renamed");
+  }
+  if (data.is_client || data.is_referral || data.referred_by_company_id) {
+    throw new Error("The system company cannot have categories");
+  }
+};
 
 export interface CreateFakeRestDataProviderOptions {
   db?: Db;
@@ -166,6 +204,64 @@ export const createDataProvider = ({
       previousData: company,
     });
   };
+
+  const listAll = async <RecordType extends { id: Identifier }>(
+    resource: string,
+    filter: Record<string, unknown>,
+  ) =>
+    (
+      await baseDataProvider.getList<RecordType>(resource, {
+        filter,
+        pagination: { page: 1, perPage: 10_000 },
+        sort: { field: "id", order: "ASC" },
+      })
+    ).data;
+
+  const getPlaceholderIds = async () =>
+    (await listAll<Company>("companies", { is_placeholder: true })).map(
+      (company) => company.id,
+    );
+
+  /**
+   * companies_summary computes nb_contacts and nb_referred_clients; the fake
+   * backend stores them, so they are recomputed whenever they may change.
+   */
+  const syncCompanyCounts = async (companyIds: Array<Identifier | null>) => {
+    const ids = [...new Set(companyIds)].filter(
+      (id): id is Identifier => id != null,
+    );
+    await Promise.all(
+      ids.map(async (id) => {
+        const [companies, contacts, referredClients] = await Promise.all([
+          listAll<Company>("companies", { id }),
+          listAll<Contact>("contacts", { company_id: id }),
+          listAll<Company>("companies", { referred_by_company_id: id }),
+        ]);
+        if (!companies[0]) return;
+        await baseDataProvider.update<Company>("companies", {
+          id,
+          data: {
+            nb_contacts: contacts.length,
+            nb_referred_clients: referredClients.length,
+          },
+          previousData: companies[0],
+        });
+      }),
+    );
+  };
+
+  const getReferredByName = async (referredById?: Identifier | null) => {
+    if (referredById == null) return null;
+    const [referrer] = await listAll<Company>("companies", {
+      id: referredById,
+    });
+    return referrer?.name ?? null;
+  };
+
+  // The company of each contact before its update, to recount both companies
+  const previousCompanyIds = new Map<Identifier, Identifier | null>();
+  // The referral company of each company before its update
+  const previousReferrerIds = new Map<Identifier, Identifier | null>();
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
@@ -296,6 +392,68 @@ export const createDataProvider = ({
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    deleteCompany: async (
+      companyId: Identifier,
+      contactsMode: DeleteCompanyContactsMode,
+    ): Promise<number> => {
+      const [company] = await listAll<Company>("companies", { id: companyId });
+      if (!company) {
+        throw new Error(`Company ${companyId} not found`);
+      }
+      if (company.is_placeholder) {
+        throw new Error("The system company cannot be deleted");
+      }
+      const contacts = await listAll<Contact>("contacts", {
+        company_id: companyId,
+      });
+
+      if (contactsMode === "move") {
+        const [placeholderId] = await getPlaceholderIds();
+        if (placeholderId == null) {
+          throw new Error('The system company "Por definir" is missing');
+        }
+        for (const contact of contacts) {
+          await dataProvider.update<Contact>("contacts", {
+            id: contact.id,
+            data: { company_id: placeholderId },
+            previousData: contact,
+          });
+        }
+      } else {
+        for (const contact of contacts) {
+          await dataProvider.delete<Contact>("contacts", {
+            id: contact.id,
+            previousData: contact,
+          });
+        }
+      }
+
+      // Like the database: the deals go with the company, and the clients it
+      // referred are no longer referred by anyone
+      const [deals, referredClients] = await Promise.all([
+        listAll<Deal>("deals", { company_id: companyId }),
+        listAll<Company>("companies", { referred_by_company_id: companyId }),
+      ]);
+      await Promise.all([
+        ...deals.map((deal) =>
+          baseDataProvider.delete("deals", { id: deal.id, previousData: deal }),
+        ),
+        ...referredClients.map((client) =>
+          baseDataProvider.update("companies", {
+            id: client.id,
+            data: { referred_by_company_id: null, referred_by_name: null },
+            previousData: client,
+          }),
+        ),
+      ]);
+      await baseDataProvider.delete("companies", {
+        id: companyId,
+        previousData: company,
+      });
+      await syncCompanyCounts([company.referred_by_company_id ?? null]);
+
+      return contacts.length;
     },
     getConfiguration: async (): Promise<ConfigurationContextValue> => {
       const { data } = await baseDataProvider.getOne("configuration", {
@@ -451,8 +609,27 @@ export const createDataProvider = ({
           return result;
         },
         beforeUpdate: async (params) => {
+          if (params.data.company_id !== undefined) {
+            const [stored] = await listAll<Contact>("contacts", {
+              id: params.id,
+            });
+            previousCompanyIds.set(params.id, stored?.company_id ?? null);
+          }
           const newParams = await processContactAvatar(params);
           return fetchAndUpdateCompanyData(newParams, dataProvider);
+        },
+        afterUpdate: async (result) => {
+          if (previousCompanyIds.has(result.data.id)) {
+            const previousCompanyId = previousCompanyIds.get(result.data.id);
+            previousCompanyIds.delete(result.data.id);
+            if (previousCompanyId !== result.data.company_id) {
+              await syncCompanyCounts([
+                previousCompanyId ?? null,
+                result.data.company_id ?? null,
+              ]);
+            }
+          }
+          return result;
         },
         afterDelete: async (result) => {
           if (result.data.company_id != null) {
@@ -532,21 +709,66 @@ export const createDataProvider = ({
         resource: "companies",
         beforeCreate: async (params) => {
           const createParams = await processCompanyLogo(params);
+          // The database defaults
+          const data = {
+            is_client: true,
+            is_referral: false,
+            is_placeholder: false,
+            referred_by_company_id: null,
+            nb_contacts: 0,
+            nb_deals: 0,
+            nb_referred_clients: 0,
+            ...createParams.data,
+          };
+          assertValidCompanyChange(data, undefined, await getPlaceholderIds());
 
           return {
             ...createParams,
             data: {
-              ...createParams.data,
+              ...data,
+              referred_by_name: await getReferredByName(
+                data.referred_by_company_id,
+              ),
               created_at: new Date().toISOString(),
             },
           };
         },
+        afterCreate: async (result) => {
+          await syncCompanyCounts([result.data.referred_by_company_id ?? null]);
+          return result;
+        },
         beforeUpdate: async (params) => {
-          return await processCompanyLogo(params);
+          const [stored] = await listAll<Company>("companies", {
+            id: params.id,
+          });
+          assertValidCompanyChange(
+            params.data,
+            stored,
+            await getPlaceholderIds(),
+          );
+          const updateParams = await processCompanyLogo(params);
+          if (updateParams.data.referred_by_company_id === undefined) {
+            return updateParams;
+          }
+          previousReferrerIds.set(
+            params.id,
+            stored?.referred_by_company_id ?? null,
+          );
+          return {
+            ...updateParams,
+            data: {
+              ...updateParams.data,
+              referred_by_name: await getReferredByName(
+                updateParams.data.referred_by_company_id,
+              ),
+            },
+          };
         },
         afterUpdate: async (result, dataProvider) => {
-          // get all contacts of the company and for each contact, update the company_name
-          const { id, name } = result.data;
+          // get all contacts of the company and for each contact, update the
+          // company fields that contacts_summary joins
+          const { id, name, is_placeholder, is_client, is_referral } =
+            result.data;
           const { data: contacts } = await dataProvider.getList("contacts", {
             filter: { company_id: id },
             pagination: { page: 1, perPage: 1000 },
@@ -556,13 +778,70 @@ export const createDataProvider = ({
           const contactIds = contacts.map((contact) => contact.id);
           await dataProvider.updateMany("contacts", {
             ids: contactIds,
-            data: { company_name: name },
+            data: {
+              company_name: name,
+              company_is_placeholder: is_placeholder ?? false,
+              company_is_client: is_client ?? false,
+              company_is_referral: is_referral ?? false,
+            },
           });
+
+          // the referred clients show the name of their referral company
+          const referredClients = await listAll<Company>("companies", {
+            referred_by_company_id: id,
+          });
+          await Promise.all(
+            referredClients
+              .filter((client) => client.referred_by_name !== name)
+              .map((client) =>
+                baseDataProvider.update("companies", {
+                  id: client.id,
+                  data: { referred_by_name: name },
+                  previousData: client,
+                }),
+              ),
+          );
+
+          if (previousReferrerIds.has(id)) {
+            const previousReferrerId = previousReferrerIds.get(id);
+            previousReferrerIds.delete(id);
+            await syncCompanyCounts([
+              previousReferrerId ?? null,
+              result.data.referred_by_company_id ?? null,
+            ]);
+          }
           return result;
+        },
+        beforeDelete: async (params) => {
+          const [company] = await listAll<Company>("companies", {
+            id: params.id,
+          });
+          if (company?.is_placeholder) {
+            throw new Error("The system company cannot be deleted");
+          }
+          const contacts = await listAll<Contact>("contacts", {
+            company_id: params.id,
+          });
+          if (contacts.length > 0) {
+            // contacts_company_id_fkey is "on delete restrict"
+            throw new Error(
+              "This company still has contacts: use deleteCompany instead",
+            );
+          }
+          return params;
         },
       } satisfies ResourceCallbacks<Company>,
       {
         resource: "deals",
+        beforeSave: async (data) => {
+          if (
+            data.company_id != null &&
+            (await getPlaceholderIds()).includes(data.company_id)
+          ) {
+            throw new Error("Deals cannot be linked to the system company");
+          }
+          return data;
+        },
         beforeCreate: async (params) => {
           return {
             ...params,

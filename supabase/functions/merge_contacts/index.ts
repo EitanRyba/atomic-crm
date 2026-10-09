@@ -34,7 +34,28 @@ function mergeObjectArraysUnique<T>(
   return Array.from(map.values());
 }
 
-function mergeContactData(winner: Contact, loser: Contact) {
+/**
+ * The winner keeps its company, unless it is only waiting in the
+ * "Por definir" placeholder company while the loser has a real one.
+ */
+function mergeCompanyId(
+  winner: Pick<Contact, "company_id">,
+  loser: Pick<Contact, "company_id">,
+  placeholderCompanyIds: number[],
+) {
+  const isRealCompany = (id: number | null) =>
+    id != null && !placeholderCompanyIds.includes(id);
+  if (!isRealCompany(winner.company_id) && isRealCompany(loser.company_id)) {
+    return loser.company_id;
+  }
+  return winner.company_id ?? loser.company_id;
+}
+
+function mergeContactData(
+  winner: Contact,
+  loser: Contact,
+  placeholderCompanyIds: number[],
+) {
   // Merge emails
   const mergedEmails = mergeObjectArraysUnique(
     winner.email_jsonb || [],
@@ -58,7 +79,8 @@ function mergeContactData(winner: Contact, loser: Contact) {
     first_name: winner.first_name ?? loser.first_name,
     last_name: winner.last_name ?? loser.last_name,
     title: winner.title ?? loser.title,
-    company_id: winner.company_id ?? loser.company_id,
+    buyer_role: winner.buyer_role ?? loser.buyer_role,
+    company_id: mergeCompanyId(winner, loser, placeholderCompanyIds),
     email_jsonb: JSON.stringify(mergedEmails) as any,
     phone_jsonb: JSON.stringify(mergedPhones) as any,
     linkedin_url: winner.linkedin_url || loser.linkedin_url,
@@ -140,7 +162,16 @@ async function mergeContacts(
       }
 
       // 5. Merge and update winner contact
-      const mergedData = mergeContactData(winner as Contact, loser as Contact);
+      const placeholderCompanies = await trx
+        .selectFrom("companies")
+        .select("id")
+        .where("is_placeholder", "=", true)
+        .execute();
+      const mergedData = mergeContactData(
+        winner as Contact,
+        loser as Contact,
+        placeholderCompanies.map((company) => company.id),
+      );
       await trx
         .updateTable("contacts")
         .set(mergedData)

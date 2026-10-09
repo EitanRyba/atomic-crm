@@ -22,6 +22,10 @@ import { formatRelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
+import {
+  AssignCompanyButton,
+  PlaceholderCompanyBadge,
+} from "./AssignCompanyButton";
 
 export const ContactListContent = () => {
   const translate = useTranslate();
@@ -157,6 +161,7 @@ const ContactItemContent = ({
             </div>
           ) : null}
         </div>
+        {contact.company_is_placeholder ? <PlaceholderCompanyBadge /> : null}
         {contact.last_seen && (
           <div className="text-right ml-4">
             <div
@@ -171,6 +176,9 @@ const ContactItemContent = ({
           </div>
         )}
       </Link>
+      {contact.company_is_placeholder ? (
+        <AssignCompanyButton contacts={[contact]} className="ml-2" />
+      ) : null}
     </div>
   );
 };
@@ -281,6 +289,9 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
                   </ReferenceField>
                 )}
               </span>
+              {contact.company_is_placeholder ? (
+                <PlaceholderCompanyBadge className="w-fit" />
+              ) : null}
               {contact.nb_tasks ? (
                 <span>
                   {translate("crm.common.task_count", {

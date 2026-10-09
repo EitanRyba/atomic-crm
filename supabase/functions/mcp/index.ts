@@ -303,6 +303,8 @@ Row Level Security (RLS) is enforced - queries automatically return only data th
 
 Use the *_summary views (contacts_summary, companies_summary) for queries that need aggregated data or search capabilities.
 
+Companies are client companies (is_client) and/or referral companies (is_referral) that introduce clients; a client company may reference the referral company that introduced it (referred_by_company_id, exposed as referred_by_name in companies_summary). The single company with is_placeholder = true ("Por definir") is a system company holding the contacts whose company is unknown: exclude it from company lists and statistics (WHERE NOT is_placeholder), and treat its contacts as contacts without an assigned company (contacts_summary.company_is_placeholder).
+
 To filter by the current user, if the table has a sales_id column, add a WHERE sales_id = auth.uid() clause to your query.
 
 This tool only supports SELECT queries. For INSERT, UPDATE, or DELETE operations, use the mutate tool.
@@ -359,10 +361,17 @@ Row Level Security (RLS) is enforced - mutations only affect data the authentica
 
 IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
 
+Company rules, enforced by the database:
+- Every contact belongs to a company: contacts.company_id is required. When the company of a contact is unknown, use the "Por definir" system company (SELECT id FROM companies WHERE is_placeholder).
+- A company is a client company (is_client, the default) and/or a referral company (is_referral); at least one of them must be true. A client company may set referred_by_company_id to the referral company that introduced it, never to itself.
+- The "Por definir" company cannot be renamed, deleted, given categories, or linked to deals; deals belong to client companies.
+- A company that still has contacts cannot be deleted: first move its contacts to another company (or to "Por definir") or delete them. Deleting a company deletes its deals.
+
 For read-only queries, use the query tool instead.
 
 Examples:
-- "INSERT INTO contacts (first_name, last_name, email) VALUES ('John', 'Doe', 'john@example.com')"
+- "INSERT INTO contacts (first_name, last_name, email_jsonb, company_id) VALUES ('John', 'Doe', '[{"email": "john@example.com", "type": "Work"}]', 12)"
+- "INSERT INTO companies (name, is_client, is_referral) VALUES ('Acme', true, false)"
 - "UPDATE deals SET stage = 'won-deal' WHERE id = 123"
 - "DELETE FROM tasks WHERE id = 456"`,
       inputSchema: z.object({

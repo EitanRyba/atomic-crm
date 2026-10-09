@@ -1,12 +1,17 @@
 import { useDataProvider, useGetIdentity } from "ra-core";
 import { useCallback, useMemo } from "react";
 
-import type { Tag } from "../types";
+import type { Company, Tag } from "../types";
 import { buyerRoleChoices } from "../misc/prospectingChoices";
 import { toConfiguredValue } from "../dataImport/parseCell";
 import { createEachRow } from "../dataImport/createEachRow";
 import { fetchRecordsWithCache } from "../dataImport/fetchRecordsWithCache";
 import { useCompanyResolver } from "../dataImport/useCompanyResolver";
+import type { ImportBatchResult } from "../dataImport/types";
+import {
+  getPlaceholderCompany,
+  isPlaceholderCompanyName,
+} from "../companies/placeholderCompany";
 
 export type ContactImportSchema = {
   first_name: string;
@@ -57,8 +62,29 @@ export function useContactImport() {
     [tagsCache, dataProvider],
   );
 
+  // The "Por definir" company, fetched once per import
+  const placeholderCache = useMemo(
+    () => ({ company: undefined as Promise<Company> | undefined }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dataProvider],
+  );
+  const getPlaceholder = useCallback(() => {
+    placeholderCache.company ??= getPlaceholderCompany(dataProvider);
+    return placeholderCache.company;
+  }, [dataProvider, placeholderCache]);
+
   const processBatch = useCallback(
-    async (batch: ContactImportSchema[]) => {
+    async (batch: ContactImportSchema[]): Promise<ImportBatchResult> => {
+      // A contact whose company is unknown waits in "Por definir"
+      const hasUnknownCompany = (companyName?: string) =>
+        !companyName?.trim() || isPlaceholderCompanyName(companyName);
+      const placeholder = batch.some(({ company }) =>
+        hasUnknownCompany(company),
+      )
+        ? await getPlaceholder()
+        : undefined;
+      let placeholderContacts = 0;
+
       const [companies, tags] = await Promise.all([
         getCompanies(
           batch
@@ -68,7 +94,7 @@ export function useContactImport() {
         getTags(batch.flatMap((batch) => parseTags(batch.tags))),
       ]);
 
-      return createEachRow(
+      const createdCount = await createEachRow(
         batch.map(
           ({
             first_name,
@@ -101,14 +127,14 @@ export function useContactImport() {
               { number: phone_home, type: "Home" },
               { number: phone_other, type: "Other" },
             ].filter(({ number }) => number);
-            const company = companyName?.trim()
-              ? companies.get(companyName.trim())
-              : undefined;
+            const company = hasUnknownCompany(companyName)
+              ? placeholder
+              : companies.get(companyName.trim());
             const tagList = parseTags(tagNames)
               .map((name) => tags.get(name))
               .filter((tag): tag is Tag => !!tag);
 
-            return dataProvider.create("contacts", {
+            const created = dataProvider.create("contacts", {
               data: {
                 first_name,
                 last_name,
@@ -135,11 +161,26 @@ export function useContactImport() {
                 ),
               },
             });
+            return company && company.id === placeholder?.id
+              ? created.then((result) => {
+                  placeholderContacts += 1;
+                  return result;
+                })
+              : created;
           },
         ),
       );
+
+      return { created: createdCount, notices: { placeholderContacts } };
     },
-    [dataProvider, getCompanies, getTags, user?.identity?.id, today],
+    [
+      dataProvider,
+      getCompanies,
+      getPlaceholder,
+      getTags,
+      user?.identity?.id,
+      today,
+    ],
   );
 
   return processBatch;

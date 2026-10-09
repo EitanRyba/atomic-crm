@@ -4,6 +4,7 @@ import { CancelButton } from "@/components/admin/cancel-button";
 import { SaveButton } from "@/components/admin/form";
 
 import { CompanyInputs } from "./CompanyInputs";
+import { cleanupCompanyCategories } from "./companyCategories";
 
 export const CompanyCreate = () => {
   const { identity } = useGetIdentity();
@@ -16,12 +17,19 @@ export const CompanyCreate = () => {
         if (values.website && !values.website.startsWith("http")) {
           values.website = `https://${values.website}`;
         }
-        return values;
+        return cleanupCompanyCategories(values);
       }}
     >
       <div className="mt-2 flex lg:mr-72">
         <div className="flex-1">
-          <Form defaultValues={{ sales_id: identity?.id }}>
+          <Form
+            defaultValues={{
+              sales_id: identity?.id,
+              // Most new companies are the clients Humand sells to
+              is_client: true,
+              is_referral: false,
+            }}
+          >
             <Card>
               <CardContent>
                 <CompanyInputs />

@@ -2,6 +2,20 @@ import { transformContainsFilter } from "./transformContainsFilter";
 import { transformInFilter } from "./transformInFilter";
 import { transformOrFilter } from "./transformOrFilter";
 
+/**
+ * ra-data-postgrest splits an `@ilike` value into words, and matches the
+ * records containing every word, whatever the case. FakeRest `_q` filters
+ * match a case-insensitive regular expression: one lookahead per word.
+ */
+export function transformIlikeFilter(value: unknown) {
+  const words = String(value ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return `^${words.map((word) => `(?=.*${word})`).join("")}`;
+}
+
 export function transformFilter(filter: Record<string, any>) {
   if (!filter) {
     return undefined;
@@ -30,6 +44,11 @@ export function transformFilter(filter: Record<string, any>) {
 
     if (key.endsWith("@not.is")) {
       transformedFilters[`${key.slice(0, -7)}_neq`] = value;
+      continue;
+    }
+
+    if (key.endsWith("@ilike")) {
+      transformedFilters[`${key.slice(0, -6)}_q`] = transformIlikeFilter(value);
       continue;
     }
 

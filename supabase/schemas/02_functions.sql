@@ -53,6 +53,45 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
     END;
     $$;
 
+CREATE OR REPLACE FUNCTION "public"."delete_company"("target_company_id" bigint, "contacts_mode" "text") RETURNS integer
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+declare
+  placeholder_id bigint;
+  affected_contacts integer;
+begin
+  if contacts_mode is null or contacts_mode not in ('move', 'delete') then
+    raise exception 'Invalid contacts_mode "%": expected "move" or "delete"', contacts_mode
+      using errcode = '22023';
+  end if;
+
+  if not exists (select 1 from public.companies where id = target_company_id) then
+    raise exception 'Company % not found', target_company_id
+      using errcode = 'P0002';
+  end if;
+
+  if contacts_mode = 'move' then
+    select id into placeholder_id from public.companies where is_placeholder;
+    if placeholder_id is null then
+      raise exception 'The system company "Por definir" is missing';
+    end if;
+
+    update public.contacts
+    set company_id = placeholder_id
+    where company_id = target_company_id;
+  else
+    delete from public.contacts where company_id = target_company_id;
+  end if;
+
+  get diagnostics affected_contacts = row_count;
+
+  delete from public.companies where id = target_company_id;
+
+  return affected_contacts;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."get_avatar_for_email"("email" "text") RETURNS "text"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -290,6 +329,9 @@ DECLARE
   loser_phones jsonb;
   email_map jsonb;
   phone_map jsonb;
+  winner_company_is_placeholder boolean;
+  loser_company_is_placeholder boolean;
+  merged_company_id bigint;
 BEGIN
   -- Fetch both contacts
   SELECT * INTO winner_contact FROM contacts WHERE id = winner_id;
@@ -399,6 +441,16 @@ BEGIN
     )
   );
 
+  -- A real company wins over the "Por definir" placeholder company
+  SELECT is_placeholder INTO winner_company_is_placeholder FROM companies WHERE id = winner_contact.company_id;
+  SELECT is_placeholder INTO loser_company_is_placeholder FROM companies WHERE id = loser_contact.company_id;
+  merged_company_id := CASE
+    WHEN COALESCE(winner_company_is_placeholder, true)
+      AND NOT COALESCE(loser_company_is_placeholder, true)
+    THEN loser_contact.company_id
+    ELSE COALESCE(winner_contact.company_id, loser_contact.company_id)
+  END;
+
   -- 5. Update winner with merged data
   UPDATE contacts SET
     avatar = COALESCE(winner_contact.avatar, loser_contact.avatar),
@@ -406,7 +458,8 @@ BEGIN
     first_name = COALESCE(winner_contact.first_name, loser_contact.first_name),
     last_name = COALESCE(winner_contact.last_name, loser_contact.last_name),
     title = COALESCE(winner_contact.title, loser_contact.title),
-    company_id = COALESCE(winner_contact.company_id, loser_contact.company_id),
+    buyer_role = COALESCE(winner_contact.buyer_role, loser_contact.buyer_role),
+    company_id = merged_company_id,
     email_jsonb = merged_emails,
     phone_jsonb = merged_phones,
     linkedin_url = COALESCE(winner_contact.linkedin_url, loser_contact.linkedin_url),
@@ -440,6 +493,65 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."protect_placeholder_company"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if tg_op = 'DELETE' then
+    if old.is_placeholder then
+      raise exception 'The system company "%" cannot be deleted', old.name;
+    end if;
+    return old;
+  end if;
+
+  if tg_op = 'UPDATE' then
+    if new.is_placeholder is distinct from old.is_placeholder then
+      raise exception 'The placeholder flag of a company cannot be changed';
+    end if;
+    if old.is_placeholder and new.name is distinct from old.name then
+      raise exception 'The system company "%" cannot be renamed', old.name;
+    end if;
+  end if;
+
+  if new.is_placeholder and (new.is_client or new.is_referral) then
+    raise exception 'The system company "%" cannot have categories', new.name;
+  end if;
+
+  if new.is_placeholder and new.referred_by_company_id is not null then
+    raise exception 'The system company "%" cannot be referred by a company', new.name;
+  end if;
+
+  if new.referred_by_company_id is not null and exists (
+    select 1 from public.companies
+    where id = new.referred_by_company_id and is_placeholder
+  ) then
+    raise exception 'A company cannot be referred by the system company';
+  end if;
+
+  return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."reject_deals_on_placeholder_company"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if new.company_id is not null
+    and (tg_op = 'INSERT' or new.company_id is distinct from old.company_id)
+    and exists (
+      select 1 from public.companies
+      where id = new.company_id and is_placeholder
+    )
+  then
+    raise exception 'Deals cannot be linked to the system company';
+  end if;
+
+  return new;
+end;
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."set_sales_id_default"() RETURNS "trigger"

@@ -6,7 +6,11 @@ import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
 import type { Deal } from "@/components/atomic-crm/types";
-import { createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
+import { buildCompany, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
+import {
+  useContactImport,
+  type ContactImportSchema,
+} from "../contacts/useContactImport";
 import type { DataProvider } from "ra-core";
 import { DataImportButton } from "./DataImportButton";
 import { AllResources, SingleResource } from "./DataImportButton.stories";
@@ -200,6 +204,207 @@ describe("DataImportButton", () => {
     expect(companies[1].current_competitor).toBeUndefined();
   });
 
+  it("imports the category and the referral company of a company", async () => {
+    const { dataProvider, screen } = await renderImport(useCompanyImport, [
+      { name: "Russell Bedford", category: "cliente, referido" },
+      { name: "Acme", category: "Client", referred_by: "russell  BEDFORD" },
+      { name: "Globex", category: null, referred_by: "Moore Global" },
+      {
+        name: "Network Co",
+        category: null,
+        description: "MULTIPLICADORA de contadores",
+      },
+      { name: "Plain Co", category: "", description: "A retail chain" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: companies } = await listAll(dataProvider, "companies");
+    const byName = Object.fromEntries(
+      companies.map((company) => [company.name, company]),
+    );
+    expect(companies).toHaveLength(6);
+    expect(byName["Russell Bedford"]).toMatchObject({
+      is_client: true,
+      is_referral: true,
+    });
+    // The referral company is found whatever the case and spacing of its name
+    expect(byName["Acme"]).toMatchObject({
+      is_client: true,
+      is_referral: false,
+      referred_by_company_id: byName["Russell Bedford"].id,
+    });
+    // An unknown referral company is created as a referral company
+    expect(byName["Moore Global"]).toMatchObject({
+      is_client: false,
+      is_referral: true,
+    });
+    expect(byName["Globex"]).toMatchObject({
+      is_client: true,
+      referred_by_company_id: byName["Moore Global"].id,
+    });
+    // With no category, a MULTIPLICADORA is a referral company
+    expect(byName["Network Co"]).toMatchObject({
+      is_client: false,
+      is_referral: true,
+    });
+    expect(byName["Plain Co"]).toMatchObject({
+      is_client: true,
+      is_referral: false,
+    });
+  });
+
+  it("makes an existing company named as a referrer a referral company", async () => {
+    const { dataProvider, screen } = await renderImport(
+      useCompanyImport,
+      [{ name: "Acme", referred_by: "Globex" }],
+      {
+        companies: [
+          buildCompany({
+            id: 1,
+            name: "Globex",
+            is_client: true,
+            is_referral: false,
+          }),
+        ],
+      },
+    );
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies).toHaveLength(2);
+    expect(companies[0]).toMatchObject({
+      name: "Globex",
+      is_client: true,
+      is_referral: true,
+    });
+    expect(companies[1].referred_by_company_id).toBe(1);
+  });
+
+  it("reuses a company that exists already instead of duplicating it", async () => {
+    const result = { value: undefined as unknown };
+    const useRecordedImport = () => {
+      const processBatch = useCompanyImport();
+      return async (rows: ImportRow[]) => {
+        result.value = await processBatch(rows);
+        return result.value as number;
+      };
+    };
+    const { dataProvider, screen } = await renderImport(
+      useRecordedImport,
+      [
+        { name: "  ACME   corp " },
+        { name: "Globex" },
+        { name: "globex" },
+        // The system company is never imported
+        { name: "Por definir" },
+      ],
+      { companies: [buildCompany({ id: 1, name: "Acme Corp" })] },
+    );
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies.map(({ name }) => name)).toEqual(["Acme Corp", "Globex"]);
+    // Two rows reused a company, the "Por definir" row failed
+    expect(result.value).toEqual({
+      created: 3,
+      notices: { duplicateCompanies: 2 },
+    });
+  });
+
+  it("imports a contact with no company into «Por definir»", async () => {
+    const result = { value: undefined as unknown };
+    const useRecordedImport = () => {
+      const processBatch = useContactImport();
+      return async (rows: ImportRow[]) => {
+        result.value = await processBatch(rows as ContactImportSchema[]);
+        return result.value as number;
+      };
+    };
+    const placeholder = buildCompany({
+      id: 7,
+      name: "Por definir",
+      is_placeholder: true,
+      is_client: false,
+      is_referral: false,
+    });
+    const { dataProvider, screen } = await renderImport(
+      useRecordedImport,
+      [
+        { first_name: "Ada", last_name: "Lovelace", company: null },
+        { first_name: "Grace", last_name: "Hopper", company: "  " },
+        { first_name: "Alan", last_name: "Turing", company: "por  definir" },
+        { first_name: "Linus", last_name: "Torvalds", company: "acme" },
+      ],
+      { companies: [placeholder, buildCompany({ id: 1, name: "Acme" })] },
+    );
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: contacts } = await listAll(dataProvider, "contacts");
+    expect(
+      contacts.map(({ first_name, company_id }) => ({
+        first_name,
+        company_id,
+      })),
+    ).toEqual([
+      { first_name: "Ada", company_id: 7 },
+      { first_name: "Grace", company_id: 7 },
+      { first_name: "Alan", company_id: 7 },
+      // An existing company is found whatever the case of its name
+      { first_name: "Linus", company_id: 1 },
+    ]);
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies).toHaveLength(2);
+    expect(result.value).toEqual({
+      created: 4,
+      notices: { placeholderContacts: 3 },
+    });
+  });
+
+  it("creates the companies a contact CSV names as client companies", async () => {
+    const useContactBatchImport = () => {
+      const processBatch = useContactImport();
+      return (rows: ImportRow[]) => processBatch(rows as ContactImportSchema[]);
+    };
+    const { dataProvider, screen } = await renderImport(useContactBatchImport, [
+      { first_name: "Ada", last_name: "Lovelace", company: "Analytical Co" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies).toEqual([
+      expect.objectContaining({
+        name: "Analytical Co",
+        is_client: true,
+        is_referral: false,
+      }),
+    ]);
+  });
+
+  it("refuses a deal row with no company", async () => {
+    const { dataProvider, screen } = await renderImport(useDealImport, [
+      { name: "Orphan deal", company: null },
+      { name: "Real deal", company: "Acme" },
+    ]);
+
+    await screen.getByRole("button", { name: "run import" }).click();
+    await expect.element(screen.getByText("imported")).toBeVisible();
+
+    const { data: deals } = await listAll(dataProvider, "deals");
+    expect(deals.map(({ name }) => name)).toEqual(["Real deal"]);
+    const { data: companies } = await listAll(dataProvider, "companies");
+    expect(companies[0]).toMatchObject({ name: "Acme", is_client: true });
+  });
+
   it("hides a resource the running app does not register", async () => {
     // The mobile app has no deals screens, so importing deals would create
     // records the user could never see.
@@ -263,9 +468,9 @@ describe("DataImportButton", () => {
     const { dataProvider, screen } = await renderImport(
       useDealImport,
       [
-        { name: "First", stage: "Opportunity" },
-        { name: "Second", stage: "Opportunity" },
-        { name: "Other column", stage: "Proposal Sent" },
+        { name: "First", company: "Acme", stage: "Opportunity" },
+        { name: "Second", company: "Acme", stage: "Opportunity" },
+        { name: "Other column", company: "Acme", stage: "Proposal Sent" },
       ],
       {
         deals: [

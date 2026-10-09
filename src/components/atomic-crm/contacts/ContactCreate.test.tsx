@@ -1,7 +1,19 @@
 import { render } from "vitest-browser-react";
 
-import { ContactCreateBasic } from "./ContactCreate.stories";
+import {
+  ContactCreateBasic,
+  ContactCreateWithoutCompany,
+} from "./ContactCreate.stories";
 import { page } from "vitest/browser";
+
+// The company of a contact is required
+const selectCompany = async (
+  screen: Awaited<ReturnType<typeof render>>,
+  name: string,
+) => {
+  await screen.getByRole("combobox", { name: /company/i }).click();
+  await screen.getByRole("option", { name }).click();
+};
 
 describe("ContactCreate", () => {
   beforeAll(() => {
@@ -14,6 +26,36 @@ describe("ContactCreate", () => {
     await expect
       .element(screen.getByPlaceholder("Phone number"))
       .toBeInTheDocument();
+  });
+
+  it("refuses to save a contact without a company", async () => {
+    const createMock = vi.fn().mockResolvedValue({ data: { id: 1 } });
+    const screen = await render(
+      <ContactCreateWithoutCompany dataProvider={{ create: createMock }} />,
+    );
+
+    await screen.getByLabelText(/first name/i).fill("Ada");
+    await screen.getByLabelText(/last name/i).fill("Lovelace");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .element(
+        screen.getByText(
+          "Choose the contact's company. If you don't know it yet, choose «Por definir»",
+        ),
+      )
+      .toBeVisible();
+    expect(createMock).not.toHaveBeenCalledWith("contacts", expect.anything());
+  });
+
+  it("offers the «Por definir» company first", async () => {
+    const screen = await render(<ContactCreateWithoutCompany />);
+
+    await screen.getByRole("combobox", { name: /company/i }).click();
+
+    const options = screen.getByRole("option");
+    await expect.element(options.first()).toHaveTextContent("Por definir");
+    await expect.element(options.nth(1)).toHaveTextContent("Acme");
   });
 
   it("does not submit empty email and phone entries", async () => {
@@ -34,6 +76,7 @@ describe("ContactCreate", () => {
     // Fill required fields only
     await screen.getByLabelText(/first name/i).fill("Ada");
     await screen.getByLabelText(/last name/i).fill("Lovelace");
+    await selectCompany(screen, "Acme");
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 
@@ -71,6 +114,7 @@ describe("ContactCreate", () => {
     // Fill required fields
     await screen.getByLabelText(/first name/i).fill("Ada");
     await screen.getByLabelText(/last name/i).fill("Lovelace");
+    await selectCompany(screen, "Acme");
 
     // Fill email but leave phone empty
     await screen.getByPlaceholder("Email").fill("ada@example.com");
@@ -107,6 +151,7 @@ describe("ContactCreate", () => {
     // Fill required fields
     await screen.getByLabelText(/first name/i).fill("Ada");
     await screen.getByLabelText(/last name/i).fill("Lovelace");
+    await selectCompany(screen, "Acme");
 
     // Fill both email and phone
     await screen.getByPlaceholder("Email").fill("ada@example.com");

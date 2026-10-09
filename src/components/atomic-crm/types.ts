@@ -75,9 +75,27 @@ export type Company = {
   headcount?: number | null;
   headcount_source?: string | null;
   current_competitor?: string | null;
+  /** Client company: Humand is selling to it */
+  is_client?: boolean;
+  /** Referral company: it introduces client companies */
+  is_referral?: boolean;
+  /** The "Por definir" system company, holding contacts with no known company */
+  is_placeholder?: boolean;
+  /** Referral company that introduced this client company */
+  referred_by_company_id?: Identifier | null;
   nb_contacts?: number;
   nb_deals?: number;
+  /** Name of the referral company, from companies_summary */
+  referred_by_name?: string | null;
+  /** Number of client companies this referral company introduced */
+  nb_referred_clients?: number;
 } & Pick<RaRecord, "id">;
+
+/**
+ * What happens to the contacts of a deleted company: they move to the
+ * "Por definir" company, or they are deleted with it.
+ */
+export type DeleteCompanyContactsMode = "move" | "delete";
 
 export type EmailAndType = {
   email: string;
@@ -109,6 +127,10 @@ export type Contact = {
   buyer_role?: string | null;
   nb_tasks?: number;
   company_name?: string;
+  /** Whether the contact is in the "Por definir" company, from contacts_summary */
+  company_is_placeholder?: boolean;
+  company_is_client?: boolean;
+  company_is_referral?: boolean;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {

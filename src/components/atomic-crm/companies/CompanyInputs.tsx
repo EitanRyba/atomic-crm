@@ -1,5 +1,16 @@
-import { required, useRecordContext, useTranslate } from "ra-core";
+import { useEffect } from "react";
+import {
+  FieldTitle,
+  required,
+  useInput,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
+import { useFormContext, useWatch } from "react-hook-form";
+import { AutocompleteInput } from "@/components/admin/autocomplete-input";
+import { FormError, FormField, FormLabel } from "@/components/admin/form";
 import { ReferenceInput } from "@/components/admin/reference-input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { NumberInput } from "@/components/admin/number-input";
@@ -16,6 +27,7 @@ import {
   translateChoices,
 } from "../misc/prospectingChoices";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { validateCompanyCategories } from "./companyCategories";
 import type { Company, Sale } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
@@ -38,6 +50,7 @@ export const CompanyInputs = () => {
 
   return (
     <div className="flex flex-col gap-4 p-1">
+      <CompanyCategoryInputs />
       <CompanyDisplayInputs />
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
         <div className="flex flex-col gap-10 flex-1">
@@ -52,6 +65,93 @@ export const CompanyInputs = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const CompanyCategoryInputs = () => {
+  const translate = useTranslate();
+  const record = useRecordContext<Company>();
+  const { trigger, formState } = useFormContext();
+  const [isClient, isReferral] = useWatch({
+    name: ["is_client", "is_referral"],
+  });
+
+  // The rule spans both checkboxes, so checking one clears the error shown
+  // under the other once the form has been submitted
+  const { isSubmitted } = formState;
+  useEffect(() => {
+    if (isSubmitted) trigger("is_client");
+  }, [isClient, isReferral, isSubmitted, trigger]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">
+        {translate("resources.companies.field_categories.categories", {
+          _: "Categories",
+        })}
+      </h6>
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-8">
+        <CategoryCheckbox
+          source="is_client"
+          defaultValue={true}
+          validate={validateCompanyCategories}
+        />
+        <CategoryCheckbox source="is_referral" defaultValue={false} />
+      </div>
+      {isClient ? (
+        <ReferenceInput
+          source="referred_by_company_id"
+          reference="companies"
+          filter={{
+            is_referral: true,
+            ...(record?.id != null ? { "id@neq": record.id } : {}),
+          }}
+          sort={{ field: "name", order: "ASC" }}
+        >
+          <AutocompleteInput
+            label="resources.companies.fields.referred_by_company_id"
+            optionText="name"
+            helperText={false}
+            clearable
+          />
+        </ReferenceInput>
+      ) : null}
+    </div>
+  );
+};
+
+const CategoryCheckbox = ({
+  source,
+  defaultValue,
+  validate,
+}: {
+  source: "is_client" | "is_referral";
+  defaultValue: boolean;
+  validate?: typeof validateCompanyCategories;
+}) => {
+  const { id, field } = useInput({
+    source,
+    defaultValue,
+    type: "checkbox",
+    validate,
+  });
+  return (
+    <FormField id={id} name={field.name}>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={id}
+          checked={Boolean(field.value)}
+          onCheckedChange={(checked) => {
+            field.onChange(checked === true);
+            field.onBlur();
+          }}
+        />
+        <FormLabel htmlFor={id}>
+          <FieldTitle source={source} resource="companies" />
+        </FormLabel>
+      </div>
+      <FormError />
+    </FormField>
   );
 };
 

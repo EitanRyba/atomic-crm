@@ -690,11 +690,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dataImport/companyCategories.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/dashboard/TasksList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/PendingItems.tsx",
           "type": "registry:component"
         },
         {
@@ -822,7 +830,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/AssignCompanyButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/sizes.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/PlaceholderCompanyNotice.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/placeholderCompany.ts",
           "type": "registry:component"
         },
         {
@@ -862,11 +882,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/CompanyDeleteButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyCreate.tsx",
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/companyCategories.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/CompanyBadges.tsx",
           "type": "registry:component"
         },
         {

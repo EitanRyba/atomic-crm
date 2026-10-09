@@ -9,10 +9,18 @@ import {
 } from "ra-core";
 import { toast } from "sonner";
 
-import { StoryWrapper } from "@/test/StoryWrapper";
+import { buildCompany, StoryWrapper } from "@/test/StoryWrapper";
 import { DataImportButton } from "./DataImportButton";
 
 const ROW_COUNT = 80;
+
+const placeholderCompany = buildCompany({
+  id: 1,
+  name: "Por definir",
+  is_placeholder: true,
+  is_client: false,
+  is_referral: false,
+});
 
 const csv = [
   "first_name,last_name",
@@ -62,6 +70,8 @@ const createContact = async (
 
 const ImportHarness = ({ children }: { children?: ReactNode }) => (
   <StoryWrapper
+    // The contacts of the CSV have no company: they go to "Por definir"
+    data={{ companies: [placeholderCompany] }}
     dataProvider={{ create: createContact as DataProvider["create"] }}
   >
     {children ?? (

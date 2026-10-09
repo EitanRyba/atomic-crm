@@ -5,6 +5,39 @@ export const spanishCrmMessages = {
     companies: {
       name: "Empresa |||| Empresas",
       forcedCaseName: "Empresa",
+      categories: {
+        client: "Cliente",
+        referral: "Referido",
+      },
+      no_contact_defined: "Sin contacto definido",
+      referred_clients: "Clientes referidos",
+      no_referred_clients: "Todavía no refirió ninguna empresa cliente.",
+      placeholder: {
+        name: "Por definir",
+        filter: "Empresa por definir",
+        notice:
+          "Empresa del sistema para contactos sin empresa asignada. Asigná cada contacto a su empresa real.",
+      },
+      filters: {
+        category: "Categoría",
+        referred_by: "Referida por",
+        contacts: "Contactos",
+      },
+      validation: {
+        category_required: "Marcá al menos una categoría",
+      },
+      delete_dialog: {
+        title:
+          "¿Qué hacemos con sus %{smart_count} contacto? |||| ¿Qué hacemos con sus %{smart_count} contactos?",
+        description: "Vas a eliminar la empresa «%{name}» y sus oportunidades.",
+        move: "Moverlos a «Por definir»",
+        delete: "Eliminarlos también",
+        confirm_title: "¿Eliminar la empresa «%{name}»?",
+        confirm_description:
+          "Se van a eliminar también sus oportunidades. Esta acción no se puede deshacer.",
+        success: "Empresa eliminada",
+        error: "No se pudo eliminar la empresa",
+      },
       fields: {
         name: "Nombre de la empresa",
         website: "Sitio web",
@@ -29,6 +62,9 @@ export const spanishCrmMessages = {
         headcount: "Dotación (empleados)",
         headcount_source: "Fuente de la dotación",
         current_competitor: "Competidor actual",
+        is_client: "Empresa cliente",
+        is_referral: "Empresa de referido",
+        referred_by_company_id: "Referida por",
       },
       empty: {
         description: "Todavía no cargaste ninguna empresa.",
@@ -43,6 +79,7 @@ export const spanishCrmMessages = {
         address: "Dirección",
         context: "Contexto",
         prospecting: "Prospección Humand",
+        categories: "Categorías",
       },
       action: {
         create: "Crear empresa",
@@ -84,6 +121,19 @@ export const spanishCrmMessages = {
     contacts: {
       name: "Contacto |||| Contactos",
       forcedCaseName: "Contacto",
+      placeholder_badge: "Empresa por definir",
+      assign_company: {
+        action: "Asignar empresa",
+        description:
+          "Elegí la empresa real del contacto. |||| Elegí la empresa real de los %{smart_count} contactos seleccionados.",
+        success:
+          "Empresa asignada |||| Empresa asignada a %{smart_count} contactos",
+        error: "No se pudo asignar la empresa",
+      },
+      validation: {
+        company_required:
+          "Elegí la empresa del contacto. Si todavía no la sabés, elegí «Por definir»",
+      },
       field_categories: {
         background_info: "Antecedentes",
         identity: "Identidad",
@@ -188,6 +238,8 @@ export const spanishCrmMessages = {
         what_will_be_merged: "Qué se va a fusionar:",
       },
       filters: {
+        company: "Empresa",
+        company_placeholder: "Empresa por definir",
         before_last_month: "Antes del mes pasado",
         before_this_month: "Antes de este mes",
         before_this_week: "Antes de esta semana",
@@ -450,6 +502,12 @@ export const spanishCrmMessages = {
       load_more: "Cargar más actividad",
     },
     dashboard: {
+      pending: {
+        title: "Pendientes de completar",
+        companies_without_contacts: "Empresas sin contacto definido",
+        contacts_without_company: "Contactos sin empresa asignada",
+        see_all: "Ver todos",
+      },
       deals_chart: "Ingresos esperados por oportunidades",
       deals_pipeline: "Pipeline de oportunidades",
       latest_activity: "Actividad reciente",
@@ -464,6 +522,10 @@ export const spanishCrmMessages = {
       upcoming_tasks: "Próximas tareas",
     },
     data_import: {
+      placeholder_contacts:
+        "%{smart_count} contacto quedó en «Por definir». |||| %{smart_count} contactos quedaron en «Por definir».",
+      duplicate_companies:
+        "%{smart_count} empresa ya existía y se reutilizó. |||| %{smart_count} empresas ya existían y se reutilizaron.",
       button: "Importar CSV",
       complete:
         "Importación terminada: %{importCount} registros importados, %{errorCount} errores",

@@ -1,7 +1,7 @@
 import type { Meta } from "@storybook/react-vite";
 
 import { ContactCreate } from "./ContactCreate";
-import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
+import { buildCompany, buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import type { DataProvider } from "ra-core";
 
 const meta = {
@@ -26,9 +26,12 @@ export const ContactCreateBasic = ({
   <StoryWrapper
     initialEntries={["/contacts/create"]}
     data={{
+      // a contact always belongs to a company
+      companies: [buildCompany()],
       contacts: [
         buildContact({
           id: 1,
+          company_id: 1,
           email_jsonb: [],
           phone_jsonb: [],
         }),
@@ -41,13 +44,41 @@ export const ContactCreateBasic = ({
   </StoryWrapper>
 );
 
+export const ContactCreateWithoutCompany = ({
+  dataProvider = {},
+}: {
+  dataProvider?: Partial<DataProvider>;
+}) => (
+  <StoryWrapper
+    initialEntries={["/contacts/create"]}
+    data={{
+      companies: [
+        buildCompany({ id: 1, name: "Acme" }),
+        buildCompany({
+          id: 2,
+          name: "Por definir",
+          is_placeholder: true,
+          is_client: false,
+          is_referral: false,
+        }),
+      ],
+    }}
+    dataProvider={dataProvider}
+  >
+    <ContactCreate />
+  </StoryWrapper>
+);
+
 export const ContactCreateBasicWithError = () => (
   <StoryWrapper
     initialEntries={["/contacts/create"]}
     data={{
+      // a contact always belongs to a company
+      companies: [buildCompany()],
       contacts: [
         buildContact({
           id: 1,
+          company_id: 1,
           email_jsonb: [],
           phone_jsonb: [],
         }),

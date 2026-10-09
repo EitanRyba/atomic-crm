@@ -30,6 +30,7 @@ import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
+import { ContactPlaceholderCompany } from "./AssignCompanyButton";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
@@ -119,6 +120,7 @@ const ContactShowContentMobile = () => {
                   </ReferenceField>
                 )}
               </div>
+              <ContactPlaceholderCompany className="mt-1" />
             </div>
             <div>
               <ReferenceField
@@ -268,6 +270,7 @@ const ContactShowContent = () => {
                     </ReferenceField>
                   )}
                 </div>
+                <ContactPlaceholderCompany className="ml-3" />
               </div>
               <div>
                 <ReferenceField

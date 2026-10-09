@@ -44,7 +44,12 @@ const DealLinkedToInputs = () => {
       <h3 className="text-base font-medium">
         {translate("resources.deals.inputs.linked_to")}
       </h3>
-      <ReferenceInput source="company_id" reference="companies">
+      {/* Deals are sold to client companies, never to "Por definir" */}
+      <ReferenceInput
+        source="company_id"
+        reference="companies"
+        filter={{ is_client: true, "is_placeholder@neq": true }}
+      >
         <AutocompleteCompanyInput
           label="resources.deals.fields.company_id"
           validate={required()}

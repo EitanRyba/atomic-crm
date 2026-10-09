@@ -17,7 +17,8 @@ type DealRow = {
 /**
  * Creates a deal per CSV row. Unknown columns are ignored, missing ones are
  * left empty — except `name`, which the database requires. The `company` column
- * holds a company name: matching companies are reused, unknown ones are created.
+ * holds a company name and is required: matching companies are reused, unknown
+ * ones are created as client companies.
  */
 export function useDealImport(): ProcessImportBatch {
   const { dealCategories, dealStages } = useConfigurationContext();
@@ -47,13 +48,22 @@ export function useDealImport(): ProcessImportBatch {
 
       const now = new Date().toISOString();
       return createEachRow(
-        rows.map(({ row, companyName, stage }) =>
-          dataProvider.create("deals", {
+        rows.map(({ row, companyName, stage }) => {
+          // A deal is sold to a client company: a row naming none fails
+          const company = companyName ? companies.get(companyName) : undefined;
+          if (!company) {
+            return Promise.reject(
+              new Error(
+                companyName
+                  ? `Deal "${toText(row.name) ?? ""}" cannot be linked to the company "${companyName}"`
+                  : `Deal "${toText(row.name) ?? ""}" has no company: the company column is required`,
+              ),
+            );
+          }
+          return dataProvider.create("deals", {
             data: {
               name: toText(row.name),
-              company_id: companyName
-                ? companies.get(companyName)?.id
-                : undefined,
+              company_id: company.id,
               contact_ids: [],
               category: toConfiguredValue(row.category, dealCategories),
               stage,
@@ -66,8 +76,8 @@ export function useDealImport(): ProcessImportBatch {
               created_at: now,
               updated_at: now,
             },
-          }),
-        ),
+          });
+        }),
       );
     },
     [dataProvider, dealCategories, dealStages, getCompanies, identity?.id],

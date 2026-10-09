@@ -36,6 +36,12 @@ const primaryLookupMiss = {
   }),
 };
 
+const placeholderCompany = {
+  id: 99,
+  name: "Por definir",
+  is_placeholder: true,
+};
+
 describe("addNoteToContact", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,9 +59,11 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: existingCompany, error: null }),
+          eq: () => ({
+            or: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingCompany, error: null }),
+            }),
           }),
         }),
       });
@@ -74,9 +82,11 @@ describe("addNoteToContact", () => {
     it("throws when fetching the company fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
-            maybeSingle: () =>
-              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          eq: () => ({
+            or: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
@@ -93,7 +103,13 @@ describe("addNoteToContact", () => {
       );
     });
 
-    it("returns null for a known mail provider domain without creating a company", async () => {
+    it("returns the placeholder company for a known mail provider domain without creating a company", async () => {
+      const eq = vi.fn().mockReturnValue({
+        maybeSingle: () =>
+          Promise.resolve({ data: placeholderCompany, error: null }),
+      });
+      mockFrom.mockReturnValueOnce({ select: () => ({ eq }) });
+
       const result = await getOrCreateCompanyFromDomain({
         domain: "gmail.com",
         salesId: 42,
@@ -101,9 +117,56 @@ describe("addNoteToContact", () => {
         website: "https://gmail.com",
       });
 
-      expect(result).toBeNull();
-      // No database calls should be made for mail providers
-      expect(mockFrom).not.toHaveBeenCalled();
+      expect(result).toEqual(placeholderCompany);
+      expect(eq).toHaveBeenCalledWith("is_placeholder", true);
+      // Only the placeholder lookup: no company is created for mail providers
+      expect(mockFrom).toHaveBeenCalledTimes(1);
+    });
+
+    it("throws when the placeholder company is missing", async () => {
+      mockFrom.mockReturnValueOnce({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+      });
+
+      await expect(
+        getOrCreateCompanyFromDomain({
+          domain: "gmail.com",
+          salesId: 42,
+          companyName: "Gmail",
+          website: "https://gmail.com",
+        }),
+      ).rejects.toThrow(
+        "Could not fetch the placeholder company from database, error: not found",
+      );
+    });
+
+    it("never matches the placeholder company by name", async () => {
+      const eq = vi.fn().mockReturnValue({
+        or: () => ({
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        }),
+      });
+      mockFrom
+        .mockReturnValueOnce({ select: () => ({ eq }) })
+        .mockReturnValueOnce({
+          insert: () => ({
+            select: () =>
+              Promise.resolve({ data: [{ id: 3, name: "Acme" }], error: null }),
+          }),
+        });
+
+      await getOrCreateCompanyFromDomain({
+        domain: "acme.com",
+        salesId: 42,
+        companyName: "Acme",
+        website: "https://acme.com",
+      });
+
+      expect(eq).toHaveBeenCalledWith("is_placeholder", false);
     });
 
     it("creates and returns a new company when it does not exist and domain is not a mail provider", async () => {
@@ -117,8 +180,10 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // first call: fetch
           select: () => ({
-            or: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -145,8 +210,10 @@ describe("addNoteToContact", () => {
       mockFrom
         .mockReturnValueOnce({
           select: () => ({
-            or: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -248,9 +315,11 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // 2nd call: fetch company → found
           select: () => ({
-            or: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingCompany, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: existingCompany, error: null }),
+              }),
             }),
           }),
         })
@@ -267,13 +336,16 @@ describe("addNoteToContact", () => {
       expect(mockFrom).toHaveBeenCalledTimes(3);
     });
 
-    it("creates a contact with null company_id when domain is a mail provider", async () => {
+    it("creates the contact in the placeholder company when domain is a mail provider", async () => {
       const newContact = {
         id: 12,
         first_name: "Alice",
         last_name: "Smith",
-        company_id: null,
+        company_id: placeholderCompany.id,
       };
+      const insertContact = vi.fn().mockReturnValue({
+        select: () => Promise.resolve({ data: [newContact], error: null }),
+      });
 
       mockFrom
         .mockReturnValueOnce({
@@ -285,10 +357,17 @@ describe("addNoteToContact", () => {
           }),
         })
         .mockReturnValueOnce({
-          // 2nd call: insert contact (with null company_id)
-          insert: () => ({
-            select: () => Promise.resolve({ data: [newContact], error: null }),
+          // 2nd call: fetch the "Por definir" placeholder company
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: placeholderCompany, error: null }),
+            }),
           }),
+        })
+        .mockReturnValueOnce({
+          // 3rd call: insert contact in the placeholder company
+          insert: insertContact,
         });
 
       const result = await getOrCreateContactFromEmailInfo({
@@ -300,8 +379,11 @@ describe("addNoteToContact", () => {
       });
 
       expect(result).toEqual(newContact);
-      // Only 2 froms: contacts fetch, contacts insert (no company fetch/insert for mail provider)
-      expect(mockFrom).toHaveBeenCalledTimes(2);
+      expect(insertContact).toHaveBeenCalledWith(
+        expect.objectContaining({ company_id: placeholderCompany.id }),
+      );
+      // No company is created for a mail provider
+      expect(mockFrom).toHaveBeenCalledTimes(3);
     });
 
     it("throws when creating the contact fails", async () => {
@@ -322,9 +404,11 @@ describe("addNoteToContact", () => {
         })
         .mockReturnValueOnce({
           select: () => ({
-            or: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingCompany, error: null }),
+            eq: () => ({
+              or: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: existingCompany, error: null }),
+              }),
             }),
           }),
         })

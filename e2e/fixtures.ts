@@ -24,7 +24,9 @@ const TABLES = [
 async function resetDb() {
   for (const table of TABLES) {
     // Supabase client delete need a where clause to get executed, so we use one that will match on all rows (id is not null)
-    await adminSupabase.from(table).delete().not("id", "is", null);
+    const query = adminSupabase.from(table).delete().not("id", "is", null);
+    // The "Por definir" system company cannot be deleted: a trigger refuses it
+    await (table === "companies" ? query.eq("is_placeholder", false) : query);
   }
 
   // Delete all auth users (cascades to sales via DB trigger)
@@ -122,16 +124,45 @@ async function createNotes({
   }
 }
 
+/** The "Por definir" system company, created by the migrations */
+async function getPlaceholderCompany() {
+  const { data, error } = await adminSupabase
+    .from("companies")
+    .select("id, name")
+    .eq("is_placeholder", true)
+    .single();
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch the placeholder company: ${error.message}`,
+    );
+  }
+
+  return data;
+}
+
 async function createCompany({
   name,
   salesId,
+  isClient = true,
+  isReferral = false,
+  referredByCompanyId = null,
 }: {
   name: string;
   salesId: string | number;
+  isClient?: boolean;
+  isReferral?: boolean;
+  referredByCompanyId?: string | number | null;
 }) {
   const { data, error } = await adminSupabase
     .from("companies")
-    .insert({ name, sales_id: salesId })
+    .insert({
+      name,
+      sales_id: salesId,
+      is_client: isClient,
+      is_referral: isReferral,
+      referred_by_company_id: referredByCompanyId,
+    })
     .select("id")
     .single();
 
@@ -167,7 +198,8 @@ async function createContact({
       first_name,
       last_name,
       title,
-      company_id,
+      // Every contact belongs to a company: "Por definir" when unknown
+      company_id: company_id ?? (await getPlaceholderCompany()).id,
       sales_id,
       first_seen: new Date().toISOString(),
       last_seen: new Date().toISOString(),
@@ -218,6 +250,7 @@ export const test = base.extend<{
   createUser: typeof createUser;
   createSales: typeof createSales;
   createCompany: typeof createCompany;
+  getPlaceholderCompany: typeof getPlaceholderCompany;
   createContact: typeof createContact;
   createNotes: typeof createNotes;
   menu: ReturnType<typeof getMenuMethod>;
@@ -244,6 +277,10 @@ export const test = base.extend<{
   // eslint-disable-next-line no-empty-pattern
   createCompany: async ({}, cb) => {
     await cb(createCompany);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  getPlaceholderCompany: async ({}, cb) => {
+    await cb(getPlaceholderCompany);
   },
   // eslint-disable-next-line no-empty-pattern
   createContact: async ({}, cb) => {

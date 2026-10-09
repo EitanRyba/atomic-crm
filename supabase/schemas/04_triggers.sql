@@ -33,6 +33,16 @@ create or replace trigger company_saved
     before insert or update on public.companies
     for each row execute function public.handle_company_saved();
 
+-- Protect the "Por definir" placeholder company (no delete, rename, categories)
+create or replace trigger protect_placeholder_company
+    before insert or update or delete on public.companies
+    for each row execute function public.protect_placeholder_company();
+
+-- Deals cannot be created on or moved to the placeholder company
+create or replace trigger reject_deals_on_placeholder_company
+    before insert or update of company_id on public.deals
+    for each row execute function public.reject_deals_on_placeholder_company();
+
 -- Lowercase contact emails before insert or update (must run before contact_saved)
 create or replace trigger "10_lowercase_contact_emails"
     before insert or update on public.contacts

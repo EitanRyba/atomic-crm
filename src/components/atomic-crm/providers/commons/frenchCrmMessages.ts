@@ -5,6 +5,41 @@ export const frenchCrmMessages = {
     companies: {
       name: "Entreprise |||| Entreprises",
       forcedCaseName: "Entreprise",
+      categories: {
+        client: "Client",
+        referral: "Apporteur",
+      },
+      no_contact_defined: "Aucun contact défini",
+      referred_clients: "Clients recommandés",
+      no_referred_clients:
+        "Elle n'a encore recommandé aucune entreprise cliente.",
+      placeholder: {
+        name: "À définir",
+        filter: "Entreprise à définir",
+        notice:
+          "Entreprise système pour les contacts sans entreprise assignée. Assignez chaque contact à sa véritable entreprise.",
+      },
+      filters: {
+        category: "Catégorie",
+        referred_by: "Recommandée par",
+        contacts: "Contacts",
+      },
+      validation: {
+        category_required: "Cochez au moins une catégorie",
+      },
+      delete_dialog: {
+        title:
+          "Que faisons-nous de son %{smart_count} contact ? |||| Que faisons-nous de ses %{smart_count} contacts ?",
+        description:
+          "Vous allez supprimer l'entreprise « %{name} » et ses affaires.",
+        move: "Les déplacer vers « Por definir »",
+        delete: "Les supprimer aussi",
+        confirm_title: "Supprimer l'entreprise « %{name} » ?",
+        confirm_description:
+          "Ses affaires seront supprimées aussi. Cette action est irréversible.",
+        success: "Entreprise supprimée",
+        error: "Impossible de supprimer l'entreprise",
+      },
       fields: {
         name: "Nom de l'entreprise",
         website: "Site web",
@@ -29,6 +64,9 @@ export const frenchCrmMessages = {
         headcount: "Effectif (employés)",
         headcount_source: "Source de l’effectif",
         current_competitor: "Concurrent actuel",
+        is_client: "Entreprise cliente",
+        is_referral: "Entreprise apporteuse",
+        referred_by_company_id: "Recommandée par",
       },
       empty: {
         description: "Il semble que la liste de vos entreprises soit vide.",
@@ -43,6 +81,7 @@ export const frenchCrmMessages = {
         address: "Adresse",
         context: "Contexte",
         prospecting: "Prospection Humand",
+        categories: "Catégories",
       },
       action: {
         create: "Créer une entreprise",
@@ -85,6 +124,19 @@ export const frenchCrmMessages = {
     contacts: {
       name: "Contact |||| Contacts",
       forcedCaseName: "Contact",
+      placeholder_badge: "Entreprise à définir",
+      assign_company: {
+        action: "Assigner une entreprise",
+        description:
+          "Choisissez la véritable entreprise du contact. |||| Choisissez la véritable entreprise des %{smart_count} contacts sélectionnés.",
+        success:
+          "Entreprise assignée |||| Entreprise assignée à %{smart_count} contacts",
+        error: "Impossible d'assigner l'entreprise",
+      },
+      validation: {
+        company_required:
+          "Choisissez l'entreprise du contact. Si vous ne la connaissez pas encore, choisissez « Por definir »",
+      },
       field_categories: {
         background_info: "Informations complémentaires",
         identity: "Identité",
@@ -189,6 +241,8 @@ export const frenchCrmMessages = {
         what_will_be_merged: "Ce qui sera fusionné :",
       },
       filters: {
+        company: "Entreprise",
+        company_placeholder: "Entreprise à définir",
         before_last_month: "Avant le mois dernier",
         before_this_month: "Avant ce mois-ci",
         before_this_week: "Avant cette semaine",
@@ -451,6 +505,12 @@ export const frenchCrmMessages = {
       load_more: "Charger plus d'activité",
     },
     dashboard: {
+      pending: {
+        title: "À compléter",
+        companies_without_contacts: "Entreprises sans contact défini",
+        contacts_without_company: "Contacts sans entreprise assignée",
+        see_all: "Voir tout",
+      },
       deals_chart: "Revenus des affaires à venir",
       deals_pipeline: "Pipeline des affaires",
       latest_activity: "Dernière activité",
@@ -466,6 +526,10 @@ export const frenchCrmMessages = {
       upcoming_tasks: "Tâches à venir",
     },
     data_import: {
+      placeholder_contacts:
+        "%{smart_count} contact a été placé dans « Por definir ». |||| %{smart_count} contacts ont été placés dans « Por definir ».",
+      duplicate_companies:
+        "%{smart_count} entreprise existait déjà et a été réutilisée. |||| %{smart_count} entreprises existaient déjà et ont été réutilisées.",
       button: "Importer un fichier CSV",
       complete:
         "Import terminé. %{importCount} enregistrements importés, %{errorCount} erreurs",

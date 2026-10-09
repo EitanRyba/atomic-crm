@@ -32,9 +32,17 @@ export interface ContactsTable {
   has_newsletter: boolean | null;
   status: string | null;
   tags: number[] | null;
-  company_id: number | null;
+  company_id: number;
   sales_id: number | null;
   linkedin_url: string | null;
+  buyer_role: string | null;
+}
+
+// Only the columns the edge functions read
+interface CompaniesTable {
+  id: Generated<number>;
+  name: string;
+  is_placeholder: boolean;
 }
 
 interface TasksTable {
@@ -75,6 +83,7 @@ interface DealsTable {
 }
 
 interface Database {
+  companies: CompaniesTable;
   contacts: ContactsTable;
   tasks: TasksTable;
   contact_notes: ContactNotesTable;

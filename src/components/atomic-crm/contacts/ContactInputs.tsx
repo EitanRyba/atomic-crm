@@ -94,7 +94,11 @@ const ContactPositionInputs = () => {
         helperText={false}
       />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
-        <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
+        <AutocompleteCompanyInput
+          label="resources.contacts.fields.company_id"
+          validate={required("resources.contacts.validation.company_required")}
+          placeholderFirst
+        />
       </ReferenceInput>
     </div>
   );

@@ -9,6 +9,7 @@ import {
 import type {
   ContactNote,
   Deal,
+  DeleteCompanyContactsMode,
   DealNote,
   RAFile,
   Sale,
@@ -247,6 +248,27 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return data;
+    },
+    /**
+     * Deletes a company in one transaction, after moving its contacts to the
+     * "Por definir" company or deleting them. Returns how many contacts were
+     * moved or deleted.
+     */
+    async deleteCompany(
+      companyId: Identifier,
+      contactsMode: DeleteCompanyContactsMode,
+    ): Promise<number> {
+      const { data, error } = await getSupabaseClient().rpc("delete_company", {
+        target_company_id: companyId,
+        contacts_mode: contactsMode,
+      });
+
+      if (error) {
+        console.error("delete_company.error", error);
+        throw new Error(error.message || "Failed to delete the company");
+      }
+
+      return data as number;
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

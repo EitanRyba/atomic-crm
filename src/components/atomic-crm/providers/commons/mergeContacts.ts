@@ -1,6 +1,6 @@
 import type { Identifier, DataProvider } from "ra-core";
 
-import type { Contact, Task, Deal, ContactNote } from "../../types";
+import type { Company, Contact, Task, Deal, ContactNote } from "../../types";
 
 /**
  * Merge one contact (loser) into another contact (winner).
@@ -107,6 +107,12 @@ export const mergeContacts = async (
     (phone) => phone.number,
   );
 
+  const companyId = await getMergedCompanyId(
+    winnerContact,
+    loserContact,
+    dataProvider,
+  );
+
   const winnerUpdate = dataProvider.update<Contact>("contacts", {
     id: winnerId,
     data: {
@@ -119,7 +125,7 @@ export const mergeContacts = async (
       last_name: winnerContact.last_name ?? loserContact.last_name,
       title: winnerContact.title ?? loserContact.title,
       buyer_role: winnerContact.buyer_role ?? loserContact.buyer_role,
-      company_id: winnerContact.company_id ?? loserContact.company_id,
+      company_id: companyId,
       email_jsonb: mergedEmails,
       phone_jsonb: mergedPhones,
       linkedin_url: winnerContact.linkedin_url || loserContact.linkedin_url,
@@ -153,6 +159,34 @@ export const mergeContacts = async (
     id: loserId,
     previousData: loserContact,
   });
+};
+
+/**
+ * The kept contact keeps its company, unless it is only waiting in the
+ * "Por definir" company while the other contact has a real one.
+ */
+export const getMergedCompanyId = async (
+  winnerContact: Pick<Contact, "company_id">,
+  loserContact: Pick<Contact, "company_id">,
+  dataProvider: DataProvider,
+) => {
+  const companyIds = [winnerContact.company_id, loserContact.company_id].filter(
+    (id): id is Identifier => id != null,
+  );
+  const { data: companies } = await dataProvider.getMany<Company>("companies", {
+    ids: companyIds,
+  });
+  const isRealCompany = (id: Identifier | null | undefined) =>
+    id != null &&
+    companies.some((company) => company.id === id && !company.is_placeholder);
+
+  if (
+    !isRealCompany(winnerContact.company_id) &&
+    isRealCompany(loserContact.company_id)
+  ) {
+    return loserContact.company_id;
+  }
+  return winnerContact.company_id ?? loserContact.company_id;
 };
 
 // Helper functions to merge arrays and remove duplicates

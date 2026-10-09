@@ -1,4 +1,5 @@
 import { Globe, Linkedin, Phone } from "lucide-react";
+import { Link } from "react-router";
 import {
   useGetIdentity,
   useLocaleState,
@@ -6,7 +7,6 @@ import {
   useTranslate,
 } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
-import { DeleteButton } from "@/components/admin/delete-button";
 import { ShowButton } from "@/components/admin/show-button";
 import { TextField } from "@/components/admin/text-field";
 import { UrlField } from "@/components/admin/url-field";
@@ -18,6 +18,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import { CompanyDeleteButton } from "./CompanyDeleteButton";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import {
   competitorChoices,
@@ -38,7 +39,10 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
     <div className="hidden sm:block w-92 min-w-92 space-y-4">
       <div className="flex flex-row space-x-1">
         {link === "edit" ? (
-          <EditButton label={translate("resources.companies.action.edit")} />
+          // The "Por definir" system company cannot be edited
+          record.is_placeholder ? null : (
+            <EditButton label={translate("resources.companies.action.edit")} />
+          )
         ) : (
           <ShowButton label={translate("resources.companies.action.show")} />
         )}
@@ -54,9 +58,9 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 
       <AdditionalInfo record={record} />
 
-      {link !== "edit" && (
+      {link !== "edit" && !record.is_placeholder && (
         <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
-          <DeleteButton
+          <CompanyDeleteButton
             className="h-6 cursor-pointer hover:bg-destructive/10! text-destructive! border-destructive! focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"
             size="sm"
           />
@@ -173,7 +177,15 @@ export const ProspectingInfo = ({ record }: { record: Company }) => {
   );
   const hasHeadcount =
     record.headcount !== null && record.headcount !== undefined;
+  const categories = [
+    record.is_client && translate("resources.companies.categories.client"),
+    record.is_referral && translate("resources.companies.categories.referral"),
+  ].filter(Boolean);
+  const isReferredClient =
+    record.is_client && record.referred_by_company_id != null;
   if (
+    !categories.length &&
+    !isReferredClient &&
     !record.network &&
     !record.country &&
     !continentLabel &&
@@ -189,6 +201,23 @@ export const ProspectingInfo = ({ record }: { record: Company }) => {
     <AsideSection
       title={translate("resources.companies.field_categories.prospecting")}
     >
+      {categories.length > 0 && (
+        <span>
+          {translate("resources.companies.field_categories.categories")}:{" "}
+          {categories.join(" · ")}
+        </span>
+      )}
+      {isReferredClient && (
+        <span>
+          {field("referred_by_company_id")}:{" "}
+          <Link
+            to={`/companies/${record.referred_by_company_id}/show`}
+            className="underline hover:no-underline"
+          >
+            {record.referred_by_name ?? `#${record.referred_by_company_id}`}
+          </Link>
+        </span>
+      )}
       {record.network && (
         <span>
           {field("network")}: {record.network}

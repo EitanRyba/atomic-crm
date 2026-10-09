@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useNotify, useRefresh } from "ra-core";
+import { useNotify, useRefresh, useTranslate } from "ra-core";
 
 import { usePapaParse } from "../misc/usePapaParse";
 import { DataImportDialog } from "./DataImportDialog";
@@ -40,6 +40,7 @@ export const useDataImportContext = () => {
 export const DataImportProvider = ({ children }: { children: ReactNode }) => {
   const notify = useNotify();
   const refresh = useRefresh();
+  const translate = useTranslate();
   const resources = useImportableResources();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [pinnedName, setPinnedName] = useState<ImportableResourceName | null>(
@@ -68,18 +69,33 @@ export const DataImportProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (importer.state === "complete") {
       refresh();
-      notify("crm.data_import.complete", {
-        type: "success",
-        messageArgs: {
-          importCount: importer.importCount,
-          errorCount: importer.errorCount,
-        },
-      });
+      const { placeholderContacts, duplicateCompanies } = importer.notices;
+      notify(
+        [
+          translate("crm.data_import.complete", {
+            importCount: importer.importCount,
+            errorCount: importer.errorCount,
+          }),
+          placeholderContacts
+            ? translate("crm.data_import.placeholder_contacts", {
+                smart_count: placeholderContacts,
+              })
+            : null,
+          duplicateCompanies
+            ? translate("crm.data_import.duplicate_companies", {
+                smart_count: duplicateCompanies,
+              })
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        { type: "success" },
+      );
     }
     if (importer.state === "error") {
       notify("crm.data_import.error", { type: "error" });
     }
-  }, [importer, notify, refresh]);
+  }, [importer, notify, refresh, translate]);
 
   useEffect(() => {
     if (!isImporting) return;

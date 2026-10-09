@@ -1,5 +1,12 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
-import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
+import {
+  Building2,
+  CheckSquare,
+  Clock,
+  Tag,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import {
   useGetIdentity,
   useGetList,
@@ -16,6 +23,22 @@ import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
 import { AccountManagerFilter } from "../sales/AccountManagerInput";
+
+// Filters on the company of the contact, from contacts_summary
+const companyFilters = [
+  {
+    label: "resources.contacts.filters.company_placeholder",
+    value: { company_is_placeholder: true },
+  },
+  {
+    label: "resources.companies.categories.client",
+    value: { company_is_client: true },
+  },
+  {
+    label: "resources.companies.categories.referral",
+    value: { company_is_referral: true },
+  },
+];
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
@@ -127,6 +150,21 @@ export const ContactListFilter = () => {
               size={isMobile ? "lg" : undefined}
             />
           ))}
+      </FilterCategory>
+
+      <FilterCategory
+        icon={<Building2 />}
+        label="resources.contacts.filters.company"
+      >
+        {companyFilters.map(({ label, value }) => (
+          <ToggleFilterButton
+            key={label}
+            className="w-auto md:w-full justify-between h-10 md:h-8"
+            label={label}
+            value={value}
+            size={isMobile ? "lg" : undefined}
+          />
+        ))}
       </FilterCategory>
 
       <FilterCategory
@@ -251,6 +289,15 @@ export const ContactListFilterSummary = () => {
             value={{ "tags@cs": `{${record.id}}` }}
           />
         ))}
+
+      {companyFilters.map(({ label, value }) => (
+        <ActiveFilterButton
+          key={label}
+          className="w-auto justify-between h-8"
+          label={label}
+          value={value}
+        />
+      ))}
 
       <ActiveFilterButton
         className="w-auto justify-between h-8"

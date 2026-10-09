@@ -13,6 +13,7 @@ import { Avatar as ContactAvatar } from "../contacts/Avatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
 import { CompanyAvatar } from "./CompanyAvatar";
+import { CompanyBadges } from "./CompanyBadges";
 
 export const CompanyCard = (props: { record?: Company }) => {
   const createPath = useCreatePath();
@@ -33,13 +34,14 @@ export const CompanyCard = (props: { record?: Company }) => {
       })}
       className="no-underline"
     >
-      <Card className="h-[200px] flex flex-col justify-between p-4 hover:bg-muted">
+      <Card className="min-h-[200px] h-full flex flex-col justify-between gap-2 p-4 hover:bg-muted">
         <div className="flex flex-col items-center gap-1">
           <CompanyAvatar />
           <div className="text-center mt-1">
             <h6 className="text-sm font-medium">{record.name}</h6>
             <p className="text-xs text-muted-foreground">{sectorLabel}</p>
           </div>
+          <CompanyBadges record={record} className="justify-center" />
         </div>
         <div className="flex flex-row w-full justify-between gap-2">
           <div className="flex items-center">

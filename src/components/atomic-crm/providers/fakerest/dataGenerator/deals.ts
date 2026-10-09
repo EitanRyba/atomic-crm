@@ -10,8 +10,12 @@ import type { Db } from "./types";
 import { randomDate } from "./utils";
 
 export const generateDeals = (db: Db): Deal[] => {
+  // Deals are sold to client companies, never to "Por definir"
+  const clients = db.companies.filter(
+    (company) => company.is_client && !company.is_placeholder,
+  );
   const deals = Array.from(Array(50).keys()).map((id) => {
-    const company = random.arrayElement(db.companies);
+    const company = random.arrayElement(clients);
     company.nb_deals = (company.nb_deals ?? 0) + 1;
     const contacts = random.arrayElements(
       db.contacts.filter((contact) => contact.company_id === company.id),
