@@ -41,7 +41,15 @@ export const Dashboard = () => {
   }
 
   if (!totalContactNotes) {
-    return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
+    // Imported data can already have pending items before the first note exists.
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="w-full max-w-[600px] mx-auto">
+          <PendingItems />
+        </div>
+        <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />
+      </div>
+    );
   }
 
   return (
