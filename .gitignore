@@ -61,3 +61,4 @@ node_modules/
 # Local production data backups
 backup-before-stage-1.sql
 backup-before-stage-1/
+backup-before-stage-2/
