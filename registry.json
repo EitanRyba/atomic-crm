@@ -146,6 +146,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/validateStageTags.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/SettingsPageMobile.tsx",
           "type": "registry:component"
         },
@@ -155,6 +159,14 @@
         },
         {
           "path": "src/components/atomic-crm/settings/ProfilePage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/settings/DealStageTagsInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/settings/ColorInput.tsx",
           "type": "registry:component"
         },
         {
@@ -602,6 +614,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/DealOutcomeDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/dealOutcome.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/DealListContent.tsx",
           "type": "registry:component"
         },
@@ -642,6 +662,26 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/tags/useDealTags.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/tags/useDealTagMutations.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/tags/DealTagsSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/tags/DealTagList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/tags/DealTagChip.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dataImport/useImportableResources.ts",
           "type": "registry:component"
         },
@@ -667,6 +707,10 @@
         },
         {
           "path": "src/components/atomic-crm/dataImport/fetchRecordsWithCache.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/dealStageImport.ts",
           "type": "registry:component"
         },
         {
@@ -699,6 +743,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/TasksList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/PostponedDeals.tsx",
           "type": "registry:component"
         },
         {
