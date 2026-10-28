@@ -21,6 +21,10 @@ describe("Deal tags", () => {
       .getByRole("textbox", { name: "Description" })
       .fill("Sent to the HR director");
     await screen.getByRole("button", { name: "Save" }).click();
+    // Wait for the editor to close before opening it again
+    await expect
+      .element(screen.getByRole("textbox", { name: "Description" }))
+      .not.toBeInTheDocument();
 
     // Assert: the description is kept
     await screen.getByRole("button", { name: "Proposal sent" }).click();

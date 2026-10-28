@@ -15,7 +15,11 @@ import type {
 } from "@/components/atomic-crm/types";
 import { DataImportProvider } from "@/components/atomic-crm/dataImport/DataImportProvider";
 import { CRM } from "@/components/atomic-crm/root/CRM";
-import type { ConfigurationContextValue } from "@/components/atomic-crm/root/ConfigurationContext";
+import {
+  CONFIGURATION_STORE_KEY,
+  type ConfigurationContextValue,
+} from "@/components/atomic-crm/root/ConfigurationContext";
+import { defaultConfiguration } from "@/components/atomic-crm/root/defaultConfiguration";
 import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
 export const createTestAuthProvider = (): AuthProvider => ({
@@ -159,7 +163,23 @@ export const StoryWrapper = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
-  const store = useMemo(() => memoryStore(), []);
+  // Seed the configuration up front: CRM only seeds it in an effect, which
+  // runs after the children already stored the defaults.
+  const store = useMemo(
+    () =>
+      memoryStore(
+        configuration
+          ? {
+              [CONFIGURATION_STORE_KEY]: {
+                ...defaultConfiguration,
+                ...configuration,
+              },
+            }
+          : {},
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useEffect(() => {
     // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.

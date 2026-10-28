@@ -91,7 +91,12 @@ export const DealOutcomeDialog = ({
   return (
     <Dialog open onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* noValidate: show our translated errors instead of the browser's */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>
               {translate(
