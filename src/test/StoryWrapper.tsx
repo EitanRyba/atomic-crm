@@ -15,6 +15,7 @@ import type {
 } from "@/components/atomic-crm/types";
 import { DataImportProvider } from "@/components/atomic-crm/dataImport/DataImportProvider";
 import { CRM } from "@/components/atomic-crm/root/CRM";
+import type { ConfigurationContextValue } from "@/components/atomic-crm/root/ConfigurationContext";
 import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
 export const createTestAuthProvider = (): AuthProvider => ({
@@ -51,6 +52,7 @@ export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
     contact_notes: [],
     contacts: [],
     deal_notes: [],
+    deal_tag_assignments: [],
     deals: [],
     sales: [baseSale],
     tags: [],
@@ -129,6 +131,7 @@ export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
 export const StoryWrapper = ({
   authProvider: authProviderOverrides,
   children,
+  configuration,
   data,
   dataProvider: dataProviderOverrides,
   initialEntries,
@@ -136,6 +139,8 @@ export const StoryWrapper = ({
 }: {
   authProvider?: Partial<AuthProvider>;
   children: ReactNode;
+  // CRM configuration props (stages, tags...), on top of the defaults
+  configuration?: Partial<ConfigurationContextValue>;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
   initialEntries?: string[];
@@ -170,6 +175,7 @@ export const StoryWrapper = ({
         dashboard={() => <>{children}</>}
         store={store}
         disableTelemetry
+        {...configuration}
         layout={({ children }) => (
           <DataImportProvider>
             {children}

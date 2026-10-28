@@ -271,6 +271,10 @@ export const frenchCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
+        lost_reason: "Motif de perte",
+        lost_reason_detail: "Détail",
+        postponed_until: "Reprendre le",
+        postponed_reason: "Motif du report",
       },
       action: {
         back_to_deal: "Retour à l'affaire",
@@ -309,6 +313,50 @@ export const frenchCrmMessages = {
         title: "Importer des affaires",
       },
       invalid_date: "Date invalide",
+      outcome: {
+        lost_title: "Marquer « %{name} » comme perdue",
+        lost_help:
+          "Pour Humand, une affaire est perdue quand l'entreprise dit non explicitement, ou après 5 à 7 relances sans réponse sur au moins 3 mois.",
+        postponed_title: "Reporter « %{name} »",
+        postponed_help:
+          "Choisissez quand recontacter l'entreprise. L'affaire apparaît sur le tableau de bord une semaine avant cette date.",
+        choose_reason: "Choisissez un motif",
+        confirm: "Confirmer",
+        lost_reason_required: "Choisissez pourquoi l'affaire est perdue.",
+        postponed_until_future:
+          "La date de reprise doit être postérieure à aujourd'hui.",
+        postponed_reason_required: "Indiquez pourquoi l'affaire est reportée.",
+        resume_on: "Reprendre le %{date}",
+        move_error: "L'affaire n'a pas pu être déplacée. Réessayez.",
+        lost_reasons: {
+          said_no: "A dit non",
+          no_response: "Sans réponse",
+          wrong_contact: "Mauvais contact",
+          contact_left: "Le contact a quitté l'entreprise",
+          pilot_churn: "Abandon pendant le pilote",
+          unspecified: "Aucun motif enregistré",
+        },
+      },
+      tags: {
+        title: "Étiquettes",
+        add: "Étiquette",
+        description: "Description",
+        description_placeholder: "Ajoutez une courte note (facultatif)",
+        remove: "Retirer l'étiquette",
+        added_by: "Ajoutée par %{name} le %{date}",
+        edited_by: "Modifiée par %{name} le %{date}",
+        history: "Étiquettes précédentes (%{smart_count})",
+        removed_stage_change:
+          "Ajoutée le %{added}, retirée le %{removed} au changement d'étape",
+        removed_manual: "Ajoutée le %{added}, retirée à la main le %{removed}",
+        error: "L'étiquette n'a pas pu être enregistrée. Réessayez.",
+      },
+      board: {
+        show_closed: "Afficher reportées et perdues",
+        hide_closed: "Masquer reportées et perdues",
+        stage_info: "À propos de cette étape",
+        humand_stage: "Étape Humand : %{stage}",
+      },
     },
     notes: {
       name: "Note |||| Notes",
@@ -524,6 +572,11 @@ export const frenchCrmMessages = {
         whats_next: "Et ensuite ?",
       },
       upcoming_tasks: "Tâches à venir",
+      postponed: {
+        title: "Affaires reportées à reprendre",
+        back_to: "Revenir à %{stage}",
+        moved: "« %{name} » est revenue à %{stage}",
+      },
     },
     data_import: {
       placeholder_contacts:
@@ -600,6 +653,13 @@ export const frenchCrmMessages = {
           "Sélectionnez les étapes d'affaire à considérer comme des affaires dans le pipeline.",
         pipeline_statuses: "Statuts des pipelines",
         stages: "Étapes",
+        stage_tags: "Étiquettes par étape",
+        stage_tags_help:
+          "Étiquettes qu'une affaire peut porter dans une étape. Elles sont retirées (et gardées dans l'historique) quand l'affaire change d'étape.",
+        stage_tags_incomplete:
+          "Chaque étiquette a besoin d'une étape et d'un nom.",
+        stage_tags_duplicate:
+          "Deux étiquettes de la même étape ont le même nom.",
       },
       light_mode_logo: "Logo du mode clair",
       notes: {

@@ -47,6 +47,7 @@ import {
   defaultDealPipelineStatuses,
   defaultDealStages,
   defaultLightModeLogo,
+  defaultDealStageTags,
   defaultNoteStatuses,
   defaultTaskTypes,
   defaultTitle,
@@ -85,6 +86,7 @@ export type CRMProps = {
  * @param {LabeledValue[]} dealCategories - The categories of deals used in the application.
  * @param {string[]} dealPipelineStatuses - The statuses of deals in the pipeline used in the application.
  * @param {DealStage[]} dealStages - The stages of deals used in the application.
+ * @param {DealStageTag[]} dealStageTags - The tags a deal can carry in each stage.
  * @param {RaThemeOptions} lightTheme - The theme to use when the application is in light mode.
  * @param {string} darkModeLogo - Logo shown in dark mode and on the auth pages. Must be an imported asset, an absolute URL, or a data URI — never a route-relative path like "./logos/x.svg", which breaks on nested routes such as /oauth/consent (issue #291).
  * @param {string} lightModeLogo - Logo shown in light mode. Same rule as darkModeLogo: imported asset, absolute URL, or data URI only.
@@ -120,6 +122,7 @@ export const CRM = ({
   dealCategories = defaultDealCategories,
   dealPipelineStatuses = defaultDealPipelineStatuses,
   dealStages = defaultDealStages,
+  dealStageTags = defaultDealStageTags,
   darkModeLogo = defaultDarkModeLogo,
   lightModeLogo = defaultLightModeLogo,
   noteStatuses = defaultNoteStatuses,
@@ -156,6 +159,7 @@ export const CRM = ({
         dealCategories,
         dealPipelineStatuses,
         dealStages,
+        dealStageTags,
         noteStatuses,
         taskTypes,
         title,

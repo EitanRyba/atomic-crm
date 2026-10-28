@@ -14,6 +14,7 @@ import type {
   ContactNote,
   Deal,
   DealNote,
+  DealTagAssignment,
   DeleteCompanyContactsMode,
   Sale,
   SalesFormData,
@@ -860,11 +861,36 @@ export const createDataProvider = ({
           return result;
         },
         beforeUpdate: async (params) => {
+          const now = new Date().toISOString();
+          const stageChanged =
+            params.data.stage !== undefined &&
+            params.data.stage !== params.previousData?.stage;
+          if (stageChanged) {
+            // Like the database: moving a deal removes its tags
+            const tags = await listAll<DealTagAssignment>(
+              "deal_tag_assignments",
+              { deal_id: params.id },
+            );
+            await Promise.all(
+              tags
+                .filter(
+                  (tag) => !tag.removed_at && tag.stage !== params.data.stage,
+                )
+                .map((tag) =>
+                  baseDataProvider.update("deal_tag_assignments", {
+                    id: tag.id,
+                    data: { removed_at: now, removed_reason: "stage_change" },
+                    previousData: tag,
+                  }),
+                ),
+            );
+          }
           return {
             ...params,
             data: {
               ...params.data,
-              updated_at: new Date().toISOString(),
+              ...(stageChanged ? stageDetails(params.data, now) : {}),
+              updated_at: now,
             },
           };
         },
@@ -876,6 +902,31 @@ export const createDataProvider = ({
           return result;
         },
       } satisfies ResourceCallbacks<Deal>,
+      {
+        resource: "deal_tag_assignments",
+        beforeCreate: async (params) => {
+          const identity = await getIdentity();
+          return {
+            ...params,
+            data: {
+              ...params.data,
+              sales_id: params.data.sales_id ?? identity?.id ?? null,
+              created_at: new Date().toISOString(),
+            },
+          };
+        },
+        beforeUpdate: async (params) => {
+          const identity = await getIdentity();
+          return {
+            ...params,
+            data: {
+              ...params.data,
+              updated_at: new Date().toISOString(),
+              updated_by: identity?.id ?? null,
+            },
+          };
+        },
+      } satisfies ResourceCallbacks<DealTagAssignment>,
       {
         resource: "contact_notes",
         beforeSave: async (params) => preserveAttachmentMimeType(params),
@@ -905,3 +956,16 @@ const convertFileToBase64 = (file: { rawFile: Blob }): Promise<string> =>
     reader.onerror = reject;
     reader.readAsDataURL(file.rawFile);
   });
+
+/**
+ * Like the database trigger: a deal entering "lost" or "postponed" gets the
+ * date of that change, a deal leaving them loses their details.
+ */
+const stageDetails = (data: Partial<Deal>, now: string): Partial<Deal> => ({
+  ...(data.stage === "lost"
+    ? { lost_at: data.lost_at ?? now }
+    : { lost_reason: null, lost_reason_detail: null, lost_at: null }),
+  ...(data.stage === "postponed"
+    ? { postponed_at: data.postponed_at ?? now }
+    : { postponed_until: null, postponed_reason: null, postponed_at: null }),
+});

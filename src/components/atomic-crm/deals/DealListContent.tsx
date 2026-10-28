@@ -1,18 +1,49 @@
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
-import { useDataProvider, useListContext, type DataProvider } from "ra-core";
+import {
+  useDataProvider,
+  useListContext,
+  useNotify,
+  useStore,
+  type DataProvider,
+} from "ra-core";
 import { useEffect, useState } from "react";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
+import {
+  CLOSED_STAGES,
+  LOST_STAGE,
+  POSTPONED_STAGE,
+  SHOW_CLOSED_STAGES_STORE_KEY,
+} from "./dealOutcome";
+import {
+  DealOutcomeDialog,
+  type DealOutcomeData,
+  type DealOutcomeStage,
+} from "./DealOutcomeDialog";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
+
+type DealMove = {
+  deal: Deal;
+  source: { stage: string; index: number };
+  destination: { stage: string; index: number };
+  // the deal currently at the destination index, if any
+  destinationDeal: { stage: string; index?: number };
+};
 
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+  const notify = useNotify();
+  const [showClosedStages] = useStore(SHOW_CLOSED_STAGES_STORE_KEY, false);
+  const [pendingMove, setPendingMove] = useState<DealMove | null>(null);
+  const visibleStages = dealStages.filter(
+    (stage) => showClosedStages || !CLOSED_STAGES.includes(stage.value),
+  );
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], dealStages),
@@ -54,33 +85,68 @@ export const DealListContent = () => {
       index: undefined, // undefined if dropped after the last item
     };
 
+    const move: DealMove = {
+      deal: sourceDeal,
+      source: { stage: sourceStage, index: source.index },
+      destination: { stage: destinationStage, index: destination.index },
+      destinationDeal,
+    };
+
+    // Losing or postponing a deal needs a reason first
+    if (
+      sourceStage !== destinationStage &&
+      (destinationStage === LOST_STAGE || destinationStage === POSTPONED_STAGE)
+    ) {
+      setPendingMove(move);
+      return;
+    }
+
+    applyMove(move);
+  };
+
+  const applyMove = (move: DealMove, outcome?: DealOutcomeData) => {
     // compute local state change synchronously
     setDealsByStage(
       updateDealStageLocal(
-        sourceDeal,
-        { stage: sourceStage, index: source.index },
-        { stage: destinationStage, index: destination.index },
+        move.deal,
+        move.source,
+        move.destination,
         dealsByStage,
       ),
     );
 
     // persist the changes
-    updateDealStage(sourceDeal, destinationDeal, dataProvider).then(() => {
-      refetch();
-    });
+    updateDealStage(move.deal, move.destinationDeal, dataProvider, outcome)
+      .catch(() => {
+        notify("resources.deals.outcome.move_error", { type: "error" });
+      })
+      .finally(() => {
+        refetch();
+      });
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4">
-        {dealStages.map((stage) => (
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {visibleStages.map((stage) => (
           <DealColumn
             stage={stage.value}
-            deals={dealsByStage[stage.value]}
+            deals={dealsByStage[stage.value] ?? []}
             key={stage.value}
           />
         ))}
       </div>
+      {pendingMove ? (
+        <DealOutcomeDialog
+          stage={pendingMove.destination.stage as DealOutcomeStage}
+          dealName={pendingMove.deal.name}
+          onCancel={() => setPendingMove(null)}
+          onConfirm={(outcome) => {
+            applyMove(pendingMove, outcome);
+            setPendingMove(null);
+          }}
+        />
+      ) : null}
     </DragDropContext>
   );
 };
@@ -128,6 +194,8 @@ const updateDealStage = async (
     index?: number; // undefined if dropped after the last item
   },
   dataProvider: DataProvider,
+  // lost / postponed details, when the deal moves to one of those columns
+  outcome?: DealOutcomeData,
 ) => {
   if (source.stage === destination.stage) {
     // moving deal inside the same column
@@ -237,6 +305,7 @@ const updateDealStage = async (
         data: {
           index: destinationIndex,
           stage: destination.stage,
+          ...outcome,
         },
         previousData: source,
       }),

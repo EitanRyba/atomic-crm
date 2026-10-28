@@ -1,4 +1,11 @@
 import { Droppable } from "@hello-pangea/dnd";
+import { Info } from "lucide-react";
+import { useTranslate } from "ra-core";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
@@ -14,12 +21,39 @@ export const DealColumn = ({
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const { dealStages, currency } = useConfigurationContext();
+  const translate = useTranslate();
+  const dealStage = dealStages.find((s) => s.value === stage);
   return (
-    <div className="flex-1 pb-8">
+    <div className="flex-1 min-w-48 pb-8">
       <div className="flex flex-col items-center">
-        <h3 className="text-base font-medium">
-          {findDealLabel(dealStages, stage)}
-        </h3>
+        <div className="flex items-center gap-1">
+          <h3 className="text-base font-medium text-center">
+            {findDealLabel(dealStages, stage)}
+          </h3>
+          {dealStage?.description || dealStage?.humandStage ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={translate("resources.deals.board.stage_info")}
+                >
+                  <Info className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-72">
+                {dealStage.humandStage ? (
+                  <p className="font-medium">
+                    {translate("resources.deals.board.humand_stage", {
+                      stage: dealStage.humandStage,
+                    })}
+                  </p>
+                ) : null}
+                {dealStage.description ? <p>{dealStage.description}</p> : null}
+              </TooltipContent>
+            </Tooltip>
+          ) : null}
+        </div>
         <p className="text-sm text-muted-foreground">
           {totalAmount.toLocaleString("en-US", {
             notation: "compact",

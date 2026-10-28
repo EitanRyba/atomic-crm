@@ -74,6 +74,18 @@ grant all on function public.reject_deals_on_placeholder_company() to anon;
 grant all on function public.reject_deals_on_placeholder_company() to authenticated;
 grant all on function public.reject_deals_on_placeholder_company() to service_role;
 
+grant all on function public.handle_deal_stage_details() to anon;
+grant all on function public.handle_deal_stage_details() to authenticated;
+grant all on function public.handle_deal_stage_details() to service_role;
+
+grant all on function public.remove_deal_tags_on_stage_change() to anon;
+grant all on function public.remove_deal_tags_on_stage_change() to authenticated;
+grant all on function public.remove_deal_tags_on_stage_change() to service_role;
+
+grant all on function public.set_deal_tag_assignment_audit() to anon;
+grant all on function public.set_deal_tag_assignment_audit() to authenticated;
+grant all on function public.set_deal_tag_assignment_audit() to service_role;
+
 grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
@@ -98,6 +110,10 @@ grant all on table public.deals to service_role;
 grant all on table public.deal_notes to anon;
 grant all on table public.deal_notes to authenticated;
 grant all on table public.deal_notes to service_role;
+
+grant all on table public.deal_tag_assignments to anon;
+grant all on table public.deal_tag_assignments to authenticated;
+grant all on table public.deal_tag_assignments to service_role;
 
 grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
@@ -156,6 +172,10 @@ grant all on sequence public."dealNotes_id_seq" to service_role;
 grant all on sequence public.deals_id_seq to anon;
 grant all on sequence public.deals_id_seq to authenticated;
 grant all on sequence public.deals_id_seq to service_role;
+
+grant all on sequence public.deal_tag_assignments_id_seq to anon;
+grant all on sequence public.deal_tag_assignments_id_seq to authenticated;
+grant all on sequence public.deal_tag_assignments_id_seq to service_role;
 
 grant all on sequence public.favicons_excluded_domains_id_seq to anon;
 grant all on sequence public.favicons_excluded_domains_id_seq to authenticated;

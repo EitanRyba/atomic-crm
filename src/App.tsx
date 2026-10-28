@@ -3,6 +3,7 @@ import {
   humandCompanySectors,
   humandDealCategories,
   humandDealPipelineStatuses,
+  humandDealStageTags,
   humandDealStages,
   humandNoteStatuses,
   humandTaskTypes,
@@ -17,6 +18,7 @@ import {
  *  - dealCategories
  *  - dealPipelineStatuses
  *  - dealStages
+ *  - dealStageTags
  *  - lightTheme
  *  - darkModeLogo / lightModeLogo
  *  - noteStatuses
@@ -39,6 +41,7 @@ const App = () => (
     dealCategories={humandDealCategories}
     dealPipelineStatuses={humandDealPipelineStatuses}
     dealStages={humandDealStages}
+    dealStageTags={humandDealStageTags}
     noteStatuses={humandNoteStatuses}
     taskTypes={humandTaskTypes}
   />

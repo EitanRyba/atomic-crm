@@ -565,3 +565,63 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."handle_deal_stage_details"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+  if tg_op = 'INSERT' or new.stage is distinct from old.stage then
+    if new.stage = 'lost' then
+      new.lost_at := coalesce(new.lost_at, now());
+    else
+      new.lost_reason := null;
+      new.lost_reason_detail := null;
+      new.lost_at := null;
+    end if;
+
+    if new.stage = 'postponed' then
+      new.postponed_at := coalesce(new.postponed_at, now());
+    else
+      new.postponed_until := null;
+      new.postponed_reason := null;
+      new.postponed_at := null;
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."remove_deal_tags_on_stage_change"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+  update public.deal_tag_assignments
+  set removed_at = now(), removed_reason = 'stage_change'
+  where deal_id = new.id
+    and removed_at is null
+    and stage is distinct from new.stage;
+
+  return null;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."set_deal_tag_assignment_audit"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+begin
+  if tg_op = 'INSERT' then
+    if new.sales_id is null then
+      select id into new.sales_id from public.sales where user_id = auth.uid();
+    end if;
+  else
+    new.updated_at := now();
+    select id into new.updated_by from public.sales where user_id = auth.uid();
+  end if;
+
+  return new;
+end;
+$$;

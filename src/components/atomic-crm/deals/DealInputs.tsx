@@ -1,4 +1,5 @@
 import { required, useTranslate } from "ra-core";
+import { useWatch } from "react-hook-form";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -12,6 +13,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import {
+  LOST_REASONS,
+  LOST_STAGE,
+  POSTPONED_STAGE,
+  UNSPECIFIED_LOST_REASON,
+  defaultPostponedUntil,
+  lostReasonKey,
+} from "./dealOutcome";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -101,10 +110,61 @@ const DealMiscInputs = () => {
         choices={dealStages}
         optionText="label"
         optionValue="value"
-        defaultValue="opportunity"
+        defaultValue={dealStages[0]?.value}
         helperText={false}
         validate={required()}
       />
+      <DealOutcomeInputs />
     </div>
   );
+};
+
+/** Reason of a lost deal, or date and reason of a postponed one. */
+const DealOutcomeInputs = () => {
+  const translate = useTranslate();
+  const stage = useWatch({ name: "stage" });
+
+  if (stage === LOST_STAGE) {
+    const choices = [...LOST_REASONS, UNSPECIFIED_LOST_REASON].map(
+      (reason) => ({ id: reason, name: translate(lostReasonKey(reason)) }),
+    );
+    return (
+      <>
+        <SelectInput
+          source="lost_reason"
+          choices={choices}
+          helperText={false}
+          validate={required()}
+        />
+        <TextInput
+          source="lost_reason_detail"
+          multiline
+          rows={2}
+          helperText={false}
+        />
+      </>
+    );
+  }
+
+  if (stage === POSTPONED_STAGE) {
+    return (
+      <>
+        <DateInput
+          source="postponed_until"
+          helperText={false}
+          validate={required()}
+          defaultValue={defaultPostponedUntil()}
+        />
+        <TextInput
+          source="postponed_reason"
+          multiline
+          rows={2}
+          helperText={false}
+          validate={required()}
+        />
+      </>
+    );
+  }
+
+  return null;
 };

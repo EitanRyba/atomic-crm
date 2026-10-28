@@ -4,8 +4,11 @@ import {
   useCanAccess,
   useGetIdentity,
   useListContext,
+  useStore,
   useTranslate,
 } from "ra-core";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -25,13 +28,15 @@ import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
+import { SHOW_CLOSED_STAGES_STORE_KEY, openStagesFilter } from "./dealOutcome";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
-  const { dealCategories } = useConfigurationContext();
+  const { dealCategories, dealStages } = useConfigurationContext();
   const translate = useTranslate();
+  const [showClosedStages] = useStore(SHOW_CLOSED_STAGES_STORE_KEY, false);
   const { canAccess: canAccessSalesList, isPending } = useCanAccess({
     resource: "sales",
     action: "list",
@@ -71,7 +76,10 @@ const DealList = () => {
   return (
     <List
       perPage={100}
-      filter={{ "archived_at@is": null }}
+      filter={{
+        "archived_at@is": null,
+        ...(showClosedStages ? {} : openStagesFilter(dealStages)),
+      }}
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
@@ -117,11 +125,36 @@ const DealLayout = () => {
 const DealActions = () => (
   <TopToolbar>
     <FilterButton />
+    <ShowClosedStagesButton />
     <DataImportButton resource="deals" />
     <ExportButton />
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
+
+const ShowClosedStagesButton = () => {
+  const translate = useTranslate();
+  const [showClosedStages, setShowClosedStages] = useStore(
+    SHOW_CLOSED_STAGES_STORE_KEY,
+    false,
+  );
+  const Icon = showClosedStages ? EyeOff : Eye;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-9"
+      onClick={() => setShowClosedStages(!showClosedStages)}
+    >
+      <Icon className="size-4" />
+      {translate(
+        showClosedStages
+          ? "resources.deals.board.hide_closed"
+          : "resources.deals.board.show_closed",
+      )}
+    </Button>
+  );
+};
 
 /**
  *

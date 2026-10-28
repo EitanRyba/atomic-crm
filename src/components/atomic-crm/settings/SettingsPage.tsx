@@ -1,14 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { RotateCcw, Save } from "lucide-react";
 import type { RaRecord } from "ra-core";
-import {
-  EditBase,
-  Form,
-  useGetList,
-  useInput,
-  useNotify,
-  useTranslate,
-} from "ra-core";
+import { EditBase, Form, useGetList, useNotify, useTranslate } from "ra-core";
 import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -21,6 +14,9 @@ import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
 import ImageEditorField from "../misc/ImageEditorField";
+import type { DealStageTag } from "../types";
+import { ColorInput } from "./ColorInput";
+import { DealStageTagsInput } from "./DealStageTagsInput";
 import {
   useConfigurationContext,
   useConfigurationUpdater,
@@ -45,7 +41,9 @@ const SECTIONS = [
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
-const ensureValues = (items: { value?: string; label: string }[] | undefined) =>
+const ensureValues = <T extends { value?: string; label: string }>(
+  items: T[] | undefined,
+) =>
   items?.map((item) => ({ ...item, value: item.value || toSlug(item.label) }));
 
 type ValidateItemsInUseMessages = {
@@ -116,6 +114,8 @@ const getCurrencyChoices = () => {
   }));
 };
 
+const DEFAULT_TAG_COLOR = "#e5e5e5";
+
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
     title: data.title,
@@ -127,6 +127,9 @@ const transformFormValues = (data: Record<string, any>) => ({
     taskTypes: ensureValues(data.taskTypes),
     dealStages: ensureValues(data.dealStages),
     dealPipelineStatuses: data.dealPipelineStatuses,
+    dealStageTags: ensureValues<DealStageTag>(data.dealStageTags)?.map(
+      (tag) => ({ ...tag, color: tag.color || DEFAULT_TAG_COLOR }),
+    ),
     noteStatuses: ensureValues(data.noteStatuses),
   } as ConfigurationContextValue,
 });
@@ -175,6 +178,7 @@ const SettingsForm = () => {
       taskTypes: config.taskTypes,
       dealStages: config.dealStages,
       dealPipelineStatuses: config.dealPipelineStatuses,
+      dealStageTags: config.dealStageTags,
       noteStatuses: config.noteStatuses,
     }),
     [config],
@@ -367,6 +371,10 @@ const SettingsFormFields = () => {
 
             <Separator />
 
+            <DealStageTagsInput />
+
+            <Separator />
+
             <h3 className="text-lg font-medium text-muted-foreground">
               {translate("crm.settings.deals.pipeline_statuses")}
             </h3>
@@ -504,18 +512,5 @@ const SettingsFormFields = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-/** A minimal color picker input compatible with ra-core's useInput. */
-const ColorInput = ({ source }: { source: string }) => {
-  const { field } = useInput({ source });
-  return (
-    <input
-      type="color"
-      {...field}
-      value={field.value || "#000000"}
-      className="w-9 h-9 shrink-0 cursor-pointer appearance-none rounded border bg-transparent p-0.5 [&::-webkit-color-swatch-wrapper]:cursor-pointer [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:cursor-pointer [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:cursor-pointer [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-none"
-    />
   );
 };

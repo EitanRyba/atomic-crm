@@ -1,9 +1,20 @@
 import { useCallback } from "react";
-import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
+import {
+  useDataProvider,
+  useGetIdentity,
+  useTranslate,
+  type DataProvider,
+} from "ra-core";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { useCompanyResolver } from "./useCompanyResolver";
 import { createEachRow } from "./createEachRow";
+import {
+  LOST_REASONS,
+  UNSPECIFIED_LOST_REASON,
+  lostReasonKey,
+} from "../deals/dealOutcome";
+import { resolveImportedStage, toImportedOutcome } from "./dealStageImport";
 import { toConfiguredValue, toInteger, toIsoDate, toText } from "./parseCell";
 import type { ImportRow, ProcessImportBatch } from "./types";
 
@@ -12,30 +23,46 @@ type DealRow = {
   row: ImportRow;
   companyName: string | undefined;
   stage: string | undefined;
+  // tag carried over from a stage of the previous version of the CRM
+  tag: string | undefined;
 };
 
 /**
  * Creates a deal per CSV row. Unknown columns are ignored, missing ones are
  * left empty — except `name`, which the database requires. The `company` column
  * holds a company name and is required: matching companies are reused, unknown
- * ones are created as client companies.
+ * ones are created as client companies. Stages of the previous version of the
+ * CRM are mapped to the current ones, and lost / postponed deals take their
+ * details from the lost_reason, lost_reason_detail, postponed_until and
+ * postponed_reason columns.
  */
 export function useDealImport(): ProcessImportBatch {
   const { dealCategories, dealStages } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
   const getCompanies = useCompanyResolver();
+  const translate = useTranslate();
 
   return useCallback(
     async (batch) => {
       // Parse the company name and the stage once per row: both are needed to
       // resolve companies and column indexes up front, then again per deal.
-      const rows: DealRow[] = batch.map((row) => ({
-        row,
-        companyName: toText(row.company),
-        // stage is required, so fall back to the first configured one
-        stage: toConfiguredValue(row.stage, dealStages) ?? dealStages[0]?.value,
-      }));
+      const rows: DealRow[] = batch.map((row) => {
+        const imported = resolveImportedStage(row.stage, dealStages);
+        return {
+          row,
+          companyName: toText(row.company),
+          // stage is required, so fall back to the first configured one
+          stage: imported?.stage ?? dealStages[0]?.value,
+          tag: imported?.tag,
+        };
+      });
+      const reasonLabels = Object.fromEntries(
+        [...LOST_REASONS, UNSPECIFIED_LOST_REASON].map((reason) => [
+          reason,
+          translate(lostReasonKey(reason)),
+        ]),
+      );
 
       const [companies, indexes] = await Promise.all([
         getCompanies(
@@ -48,19 +75,18 @@ export function useDealImport(): ProcessImportBatch {
 
       const now = new Date().toISOString();
       return createEachRow(
-        rows.map(({ row, companyName, stage }) => {
+        rows.map(async ({ row, companyName, stage, tag }) => {
           // A deal is sold to a client company: a row naming none fails
           const company = companyName ? companies.get(companyName) : undefined;
           if (!company) {
-            return Promise.reject(
-              new Error(
-                companyName
-                  ? `Deal "${toText(row.name) ?? ""}" cannot be linked to the company "${companyName}"`
-                  : `Deal "${toText(row.name) ?? ""}" has no company: the company column is required`,
-              ),
+            throw new Error(
+              companyName
+                ? `Deal "${toText(row.name) ?? ""}" cannot be linked to the company "${companyName}"`
+                : `Deal "${toText(row.name) ?? ""}" has no company: the company column is required`,
             );
           }
-          return dataProvider.create("deals", {
+          const outcome = toImportedOutcome(row, stage ?? "", reasonLabels);
+          const { data: deal } = await dataProvider.create("deals", {
             data: {
               name: toText(row.name),
               company_id: company.id,
@@ -75,12 +101,37 @@ export function useDealImport(): ProcessImportBatch {
               index: indexes.get(row) ?? 0,
               created_at: now,
               updated_at: now,
+              ...outcome,
             },
           });
+          if (tag) {
+            // The deal exists already: a missing tag must not count the row
+            // as failed, which would duplicate it on the next import
+            await dataProvider
+              .create("deal_tag_assignments", {
+                data: {
+                  deal_id: deal.id,
+                  stage,
+                  tag_value: tag,
+                  created_at: now,
+                },
+              })
+              .catch((error: unknown) => {
+                console.error("Failed to tag an imported deal", error);
+              });
+          }
+          return deal;
         }),
       );
     },
-    [dataProvider, dealCategories, dealStages, getCompanies, identity?.id],
+    [
+      dataProvider,
+      dealCategories,
+      dealStages,
+      getCompanies,
+      identity?.id,
+      translate,
+    ],
   );
 }
 

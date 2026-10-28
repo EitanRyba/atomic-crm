@@ -6,6 +6,7 @@ import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";
 import { HotContacts } from "./HotContacts";
 import { PendingItems } from "./PendingItems";
+import { PostponedDeals } from "./PostponedDeals";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -58,6 +59,7 @@ export const Dashboard = () => {
         <div className="flex flex-col gap-4">
           {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
           <PendingItems />
+          <PostponedDeals />
           <HotContacts />
         </div>
       </div>

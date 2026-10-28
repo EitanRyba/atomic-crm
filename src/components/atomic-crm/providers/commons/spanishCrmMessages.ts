@@ -268,6 +268,10 @@ export const spanishCrmMessages = {
         amount: "Monto estimado",
         expected_closing_date: "Fecha estimada de cierre",
         stage: "Etapa",
+        lost_reason: "Motivo de pérdida",
+        lost_reason_detail: "Detalle",
+        postponed_until: "Retomar el",
+        postponed_reason: "Motivo",
       },
       action: {
         back_to_deal: "Volver a la oportunidad",
@@ -306,6 +310,50 @@ export const spanishCrmMessages = {
         title: "Importar oportunidades",
       },
       invalid_date: "Fecha inválida",
+      outcome: {
+        lost_title: 'Marcar "%{name}" como perdida',
+        lost_help:
+          "Para Humand una oportunidad está perdida cuando la empresa dice que no explícitamente, o después de 5 a 7 seguimientos sin respuesta a lo largo de al menos 3 meses.",
+        postponed_title: 'Posponer "%{name}"',
+        postponed_help:
+          "Elegí cuándo volver a contactar a la empresa. La oportunidad aparece en el inicio una semana antes de esa fecha.",
+        choose_reason: "Elegí un motivo",
+        confirm: "Confirmar",
+        lost_reason_required: "Elegí por qué se perdió la oportunidad.",
+        postponed_until_future:
+          "La fecha para retomar tiene que ser posterior a hoy.",
+        postponed_reason_required: "Escribí por qué se pospone.",
+        resume_on: "Retomar el %{date}",
+        move_error: "No se pudo mover la oportunidad. Probá de nuevo.",
+        lost_reasons: {
+          said_no: "Dijo que no",
+          no_response: "Sin respuesta",
+          wrong_contact: "Contacto equivocado",
+          contact_left: "El contacto dejó la empresa",
+          pilot_churn: "Churn durante el piloto",
+          unspecified: "Sin motivo registrado",
+        },
+      },
+      tags: {
+        title: "Etiquetas",
+        add: "Etiqueta",
+        description: "Descripción",
+        description_placeholder: "Agregá una nota breve (opcional)",
+        remove: "Quitar etiqueta",
+        added_by: "Agregada por %{name} el %{date}",
+        edited_by: "Editada por %{name} el %{date}",
+        history: "Etiquetas anteriores (%{smart_count})",
+        removed_stage_change:
+          "Agregada el %{added}, quitada el %{removed} al cambiar de etapa",
+        removed_manual: "Agregada el %{added}, quitada a mano el %{removed}",
+        error: "No se pudo guardar la etiqueta. Probá de nuevo.",
+      },
+      board: {
+        show_closed: "Mostrar pospuestos y perdidos",
+        hide_closed: "Ocultar pospuestos y perdidos",
+        stage_info: "Sobre esta etapa",
+        humand_stage: "Etapa Humand: %{stage}",
+      },
     },
     notes: {
       name: "Nota |||| Notas",
@@ -520,6 +568,11 @@ export const spanishCrmMessages = {
         whats_next: "¿Qué sigue?",
       },
       upcoming_tasks: "Próximas tareas",
+      postponed: {
+        title: "Pospuestos para retomar",
+        back_to: "Volver a %{stage}",
+        moved: '"%{name}" volvió a %{stage}',
+      },
     },
     data_import: {
       placeholder_contacts:
@@ -593,6 +646,12 @@ export const spanishCrmMessages = {
           "Elegí qué etapas cuentan como oportunidades en el pipeline.",
         pipeline_statuses: "Etapas del pipeline",
         stages: "Etapas",
+        stage_tags: "Etiquetas por etapa",
+        stage_tags_help:
+          "Etiquetas que puede llevar una oportunidad mientras está en una etapa. Se quitan (y quedan en el historial) cuando cambia de etapa.",
+        stage_tags_incomplete: "Cada etiqueta necesita una etapa y un nombre.",
+        stage_tags_duplicate:
+          "Hay dos etiquetas con el mismo nombre en la misma etapa.",
       },
       light_mode_logo: "Logo en modo claro",
       notes: {

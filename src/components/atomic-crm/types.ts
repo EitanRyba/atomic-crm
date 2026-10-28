@@ -156,6 +156,27 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
+  lost_reason?: string | null;
+  lost_reason_detail?: string | null;
+  lost_at?: string | null;
+  postponed_until?: string | null;
+  postponed_reason?: string | null;
+  postponed_at?: string | null;
+} & Pick<RaRecord, "id">;
+
+// A tag ("post-it") applied to a deal while it sits in a stage. Removed tags
+// stay in the table (removed_at set) as the deal history.
+export type DealTagAssignment = {
+  deal_id: Identifier;
+  stage: string;
+  tag_value: string;
+  description?: string | null;
+  sales_id?: Identifier | null;
+  created_at: string;
+  updated_at?: string | null;
+  updated_by?: Identifier | null;
+  removed_at?: string | null;
+  removed_reason?: "stage_change" | "manual" | null;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {
@@ -246,7 +267,17 @@ export interface LabeledValue {
   label: string;
 }
 
-export type DealStage = LabeledValue;
+export interface DealStage extends LabeledValue {
+  // Definition shown in the Kanban column header
+  description?: string;
+  // Equivalent stage in Humand's own sales methodology
+  humandStage?: string;
+}
+
+export interface DealStageTag extends LabeledValue {
+  stage: string;
+  color: string;
+}
 
 export interface NoteStatus extends LabeledValue {
   color: string;

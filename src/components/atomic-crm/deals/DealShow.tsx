@@ -9,6 +9,7 @@ import {
   useRecordContext,
   useRedirect,
   useRefresh,
+  useLocaleState,
   useTranslate,
   useUpdate,
 } from "ra-core";
@@ -28,6 +29,14 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
+import {
+  LOST_STAGE,
+  POSTPONED_STAGE,
+  formatShortDate,
+  isPostponedOverdue,
+  lostReasonKey,
+} from "./dealOutcome";
+import { DealTagsSection } from "./tags/DealTagsSection";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -141,6 +150,10 @@ const DealShowContent = () => {
             </div>
           </div>
 
+          <DealOutcomeDetails record={record} />
+
+          <DealTagsSection deal={record} />
+
           {!!record.contact_ids?.length && (
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
@@ -184,6 +197,76 @@ const DealShowContent = () => {
       </div>
     </>
   );
+};
+
+/** Why the deal was lost, or until when it is postponed. */
+const DealOutcomeDetails = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
+  const [locale = "es"] = useLocaleState();
+
+  if (record.stage === LOST_STAGE && record.lost_reason) {
+    return (
+      <div className="m-4 flex gap-8">
+        <div className="flex flex-col">
+          <span className="text-xs text-muted-foreground tracking-wide">
+            {translate("resources.deals.fields.lost_reason")}
+          </span>
+          <span className="text-sm">
+            {translate(lostReasonKey(record.lost_reason), {
+              _: record.lost_reason,
+            })}
+            {record.lost_at
+              ? ` · ${formatShortDate(record.lost_at, locale)}`
+              : null}
+          </span>
+        </div>
+        {record.lost_reason_detail ? (
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground tracking-wide">
+              {translate("resources.deals.fields.lost_reason_detail")}
+            </span>
+            <span className="text-sm whitespace-pre-line">
+              {record.lost_reason_detail}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (record.stage === POSTPONED_STAGE && record.postponed_until) {
+    return (
+      <div className="m-4 flex gap-8">
+        <div className="flex flex-col">
+          <span className="text-xs text-muted-foreground tracking-wide">
+            {translate("resources.deals.fields.postponed_until")}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">
+              {formatShortDate(record.postponed_until, locale)}
+            </span>
+            {isPostponedOverdue(record) ? (
+              <Badge variant="destructive">
+                {translate("crm.common.past")}
+              </Badge>
+            ) : null}
+          </div>
+        </div>
+        {record.postponed_reason ? (
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground tracking-wide">
+              {translate("resources.deals.fields.postponed_reason")}
+            </span>
+            <span className="text-sm whitespace-pre-line">
+              {record.postponed_reason}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return null;
 };
 
 const ArchivedTitle = () => {

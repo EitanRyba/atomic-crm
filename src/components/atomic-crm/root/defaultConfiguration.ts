@@ -1,3 +1,4 @@
+import type { DealStageTag } from "../types";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 // Import the logos as module assets so Vite resolves their URL relative to the
 // JS chunk (import.meta.url), not the current route. A plain "./logos/..." path
@@ -37,6 +38,8 @@ export const defaultDealStages = [
 
 export const defaultDealPipelineStatuses = ["won"];
 
+export const defaultDealStageTags: DealStageTag[] = [];
+
 export const defaultDealCategories = [
   { value: "other", label: "Other" },
   { value: "copywriting", label: "Copywriting" },
@@ -70,6 +73,7 @@ export const defaultConfiguration: ConfigurationContextValue = {
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,
   dealStages: defaultDealStages,
+  dealStageTags: defaultDealStageTags,
   noteStatuses: defaultNoteStatuses,
   taskTypes: defaultTaskTypes,
   title: defaultTitle,

@@ -9,6 +9,7 @@ alter table public.contacts enable row level security;
 alter table public.contact_notes enable row level security;
 alter table public.deals enable row level security;
 alter table public.deal_notes enable row level security;
+alter table public.deal_tag_assignments enable row level security;
 alter table public.sales enable row level security;
 alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
@@ -67,3 +68,9 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- Deal tag assignments
+create policy "Enable read access for authenticated users" on public.deal_tag_assignments for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.deal_tag_assignments for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.deal_tag_assignments for update to authenticated using (true) with check (true);
+create policy "Deal Tag Assignments Delete Policy" on public.deal_tag_assignments for delete to authenticated using (true);

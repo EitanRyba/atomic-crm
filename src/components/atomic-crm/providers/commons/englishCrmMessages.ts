@@ -266,6 +266,10 @@ export const englishCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Expected closing date",
         stage: "Stage",
+        lost_reason: "Lost reason",
+        lost_reason_detail: "Details",
+        postponed_until: "Resume on",
+        postponed_reason: "Why it is postponed",
       },
       action: {
         back_to_deal: "Back to deal",
@@ -304,6 +308,49 @@ export const englishCrmMessages = {
         title: "Import deals",
       },
       invalid_date: "Invalid date",
+      outcome: {
+        lost_title: 'Mark "%{name}" as lost',
+        lost_help:
+          "Humand counts a deal as lost when the company explicitly says no, or after 5 to 7 follow-ups without an answer over at least 3 months.",
+        postponed_title: 'Postpone "%{name}"',
+        postponed_help:
+          "Choose when to get back to this company. The deal shows up on the dashboard a week before that date.",
+        choose_reason: "Choose a reason",
+        confirm: "Confirm",
+        lost_reason_required: "Choose why the deal is lost.",
+        postponed_until_future: "The date to resume must be after today.",
+        postponed_reason_required: "Write why the deal is postponed.",
+        resume_on: "Resume on %{date}",
+        move_error: "The deal could not be moved. Please try again.",
+        lost_reasons: {
+          said_no: "Said no",
+          no_response: "No response",
+          wrong_contact: "Wrong contact",
+          contact_left: "The contact left the company",
+          pilot_churn: "Churned during the pilot",
+          unspecified: "No reason recorded",
+        },
+      },
+      tags: {
+        title: "Tags",
+        add: "Tag",
+        description: "Description",
+        description_placeholder: "Add a short note (optional)",
+        remove: "Remove tag",
+        added_by: "Added by %{name} on %{date}",
+        edited_by: "Edited by %{name} on %{date}",
+        history: "Previous tags (%{smart_count})",
+        removed_stage_change:
+          "Added on %{added}, removed on %{removed} when the deal changed stage",
+        removed_manual: "Added on %{added}, removed by hand on %{removed}",
+        error: "The tag could not be saved. Please try again.",
+      },
+      board: {
+        show_closed: "Show postponed and lost",
+        hide_closed: "Hide postponed and lost",
+        stage_info: "About this stage",
+        humand_stage: "Humand stage: %{stage}",
+      },
     },
     notes: {
       name: "Note |||| Notes",
@@ -517,6 +564,11 @@ export const englishCrmMessages = {
         whats_next: "What's next?",
       },
       upcoming_tasks: "Upcoming Tasks",
+      postponed: {
+        title: "Postponed deals to resume",
+        back_to: "Back to %{stage}",
+        moved: '"%{name}" is back in %{stage}',
+      },
     },
     data_import: {
       placeholder_contacts:
@@ -592,6 +644,11 @@ export const englishCrmMessages = {
           "Select which deal stages should count as pipeline deals.",
         pipeline_statuses: "Pipeline Statuses",
         stages: "Stages",
+        stage_tags: "Tags per stage",
+        stage_tags_help:
+          "Tags a deal can carry while it sits in a stage. They are removed (and kept in the history) when the deal changes stage.",
+        stage_tags_incomplete: "Every tag needs a stage and a name.",
+        stage_tags_duplicate: "Two tags of the same stage have the same name.",
       },
       light_mode_logo: "Light Mode Logo",
       notes: {

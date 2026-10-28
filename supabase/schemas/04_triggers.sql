@@ -43,6 +43,23 @@ create or replace trigger reject_deals_on_placeholder_company
     before insert or update of company_id on public.deals
     for each row execute function public.reject_deals_on_placeholder_company();
 
+-- Stage changes stamp and clear the lost / postponed details of a deal
+create or replace trigger handle_deal_stage_details
+    before insert or update of stage on public.deals
+    for each row execute function public.handle_deal_stage_details();
+
+-- Moving a deal to another stage removes its tags (they stay as history)
+create or replace trigger remove_deal_tags_on_stage_change
+    after update of stage on public.deals
+    for each row
+    when (old.stage is distinct from new.stage)
+    execute function public.remove_deal_tags_on_stage_change();
+
+-- Who created and who last edited a deal tag
+create or replace trigger set_deal_tag_assignment_audit
+    before insert or update on public.deal_tag_assignments
+    for each row execute function public.set_deal_tag_assignment_audit();
+
 -- Lowercase contact emails before insert or update (must run before contact_saved)
 create or replace trigger "10_lowercase_contact_emails"
     before insert or update on public.contacts

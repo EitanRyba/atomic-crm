@@ -8,7 +8,20 @@ import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
-const multiplier = {
+// Likelihood of winning a deal in each open stage, used to weight the
+// expected revenue. Unknown stages count for nothing.
+const multiplier: Record<string, number> = {
+  // Humand stages
+  "first-contact": 0.05,
+  lead: 0.1,
+  "early-stage": 0.1,
+  discovery: 0.2,
+  champion: 0.35,
+  "decision-maker": 0.5,
+  negotiation: 0.65,
+  pilot: 0.7,
+  agreement: 0.85,
+  // Atomic CRM default stages (demo data)
   opportunity: 0.2,
   "proposal-sent": 0.5,
   "in-negociation": 0.8,
@@ -61,10 +74,11 @@ export const DealsChart = memo(() => {
             return acc;
           }, 0),
         pending: dealsByMonth[month]
-          .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
+          .filter(
+            (deal: Deal) => !["won", "lost", "postponed"].includes(deal.stage),
+          )
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
+            acc += deal.amount * (multiplier[deal.stage] ?? 0);
             return acc;
           }, 0),
         lost: dealsByMonth[month]
