@@ -658,6 +658,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/CreateContractButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/ContactList.tsx",
           "type": "registry:component"
         },
@@ -783,6 +787,58 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/validateContract.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/useSubcommissionStatus.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/useBillingData.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/formatBilling.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/ContractList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/ContractInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/ContractEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/ContractCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/BillingTable.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/BillingPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/BillingChart.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contracts/billing.ts",
           "type": "registry:component"
         },
         {
