@@ -19,6 +19,8 @@ import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
+import contracts from "../contracts";
+import { BillingPage } from "../contracts/BillingPage";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
@@ -263,6 +265,7 @@ const DesktopAdmin = (
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={BillingPage.path} element={<BillingPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
@@ -274,6 +277,8 @@ const DesktopAdmin = (
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
+      <Resource name="contracts" {...contracts} />
+      <Resource name="subcommission_payments" />
     </Admin>
   );
 };

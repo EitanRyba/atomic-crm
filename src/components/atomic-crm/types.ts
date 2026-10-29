@@ -179,6 +179,57 @@ export type DealTagAssignment = {
   removed_reason?: "stage_change" | "manual" | null;
 } & Pick<RaRecord, "id">;
 
+// Humand contracts. Months are "YYYY-MM" in the rules; contract months are
+// counted from the client's first payment (month 1).
+export interface FeeChange {
+  from_month: string;
+  amount: number;
+}
+
+export interface CommissionRule {
+  from_month: number;
+  to_month?: number | null;
+  percent: number;
+}
+
+export type SubcommissionKind = "percent" | "fixed";
+
+export interface SubcommissionRule {
+  kind: SubcommissionKind;
+  // a % of the commission, or a fixed USD amount per month
+  value: number;
+  from_month: number;
+  to_month?: number | null;
+}
+
+export type Contract = {
+  company_id: Identifier;
+  deal_id?: Identifier | null;
+  referral_company_id?: Identifier | null;
+  // "YYYY-MM-01": the month of the client's first payment
+  first_payment_month?: string | null;
+  // "YYYY-MM-01": the last month billed, once the contract ended
+  end_month?: string | null;
+  fee_history: FeeChange[];
+  commission_rules: CommissionRule[];
+  subcommission_rules: SubcommissionRule[];
+  notes?: string | null;
+  sales_id?: Identifier | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type SubcommissionPaymentStatus = "pending" | "paid";
+
+export type SubcommissionPayment = {
+  contract_id: Identifier;
+  // "YYYY-MM-01"
+  month: string;
+  status: SubcommissionPaymentStatus;
+  amount?: number | null;
+  paid_at?: string | null;
+} & Pick<RaRecord, "id">;
+
 export type DealNote = {
   deal_id: Identifier;
   text: string;

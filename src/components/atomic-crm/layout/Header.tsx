@@ -24,6 +24,11 @@ const Header = () => {
     currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (
+    matchPath("/billing", location.pathname) ||
+    matchPath("/contracts/*", location.pathname)
+  ) {
+    currentPath = "/billing";
   } else {
     currentPath = false;
   }
@@ -78,6 +83,13 @@ const Header = () => {
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
+                  <CanAccess resource="contracts" action="list">
+                    <NavigationTab
+                      label={translate("crm.billing.title")}
+                      to="/billing"
+                      isActive={currentPath === "/billing"}
+                    />
+                  </CanAccess>
                 </nav>
               </div>
               <div className="flex items-center">

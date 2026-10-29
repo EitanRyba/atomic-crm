@@ -355,6 +355,71 @@ export const spanishCrmMessages = {
         humand_stage: "Etapa Humand: %{stage}",
       },
     },
+    contracts: {
+      name: "Contrato |||| Contratos",
+      fields: {
+        company_id: "Empresa cliente",
+        deal_id: "Oportunidad ganada",
+        referral_company_id: "Empresa de referido",
+        first_payment_month: "Primer pago",
+        end_month: "Último mes facturado",
+        fee_history: "Fee mensual (USD)",
+        commission_rules: "Mi comisión",
+        subcommission_rules: "Subcomisión al referido",
+        notes: "Notas",
+        current_fee: "Fee actual",
+        current_commission: "Comisión actual",
+        status: "Estado",
+      },
+      rule_fields: {
+        fee_from_month: "Desde el mes",
+        amount: "Fee mensual (USD)",
+        from_month: "Desde el mes de contrato",
+        to_month: "Hasta el mes de contrato (vacío: sin fin)",
+        percent: "% del fee",
+        kind: "Tipo",
+        value: "Valor",
+      },
+      help: {
+        first_payment_month:
+          "Mes en que el cliente le pagó por primera vez a Humand: es el mes 1 del contrato.",
+        end_month: "Solo si el contrato terminó.",
+        fee_history:
+          "Agregá una línea cada vez que cambia el fee (por ejemplo, cuando cambia la cantidad de usuarios). Cada fee rige desde su mes.",
+        commission_rules:
+          "% del fee que te paga Humand, por mes de contrato. Por defecto: 50% los meses 1 a 12 y 30% después.",
+        subcommission_rules:
+          "Lo que le debés al referido: un % de tu comisión o un monto fijo en USD por mes, durante un rango de meses de contrato (dejá el final vacío si no tiene). Varias líneas se suman.",
+      },
+      subcommission_kinds: {
+        percent: "% de mi comisión",
+        fixed: "Monto fijo (USD)",
+      },
+      statuses: {
+        active: "Activo",
+        ended: "Terminado",
+        awaiting_payment: "Esperando el primer pago",
+      },
+      action: {
+        new: "Nuevo contrato",
+        edit: "Editar contrato",
+        open: "Ver contrato",
+        create_from_deal: "Crear contrato",
+      },
+      validation: {
+        end_before_start:
+          "El último mes facturado tiene que ser posterior al primer pago.",
+        fee_required: "Cargá el fee mensual.",
+        fee_incomplete: "Cada fee necesita un mes y un monto.",
+        fee_duplicate_month: "Hay dos fees que empiezan el mismo mes.",
+        commission_incomplete:
+          "Cada línea de comisión necesita un mes inicial (1 o más), un mes final posterior o vacío, y un % entre 0 y 100.",
+        commission_overlap:
+          "Hay dos líneas de comisión que cubren los mismos meses.",
+        subcommission_incomplete:
+          "Cada línea de subcomisión necesita tipo, valor (hasta 100 si es %), un mes inicial (1 o más) y un mes final posterior o vacío.",
+      },
+    },
     notes: {
       name: "Nota |||| Notas",
       forcedCaseName: "Nota",
@@ -530,6 +595,29 @@ export const spanishCrmMessages = {
       loading: "Cargando...",
       me: "Yo",
       task_count: "%{smart_count} tarea |||| %{smart_count} tareas",
+    },
+    billing: {
+      title: "Facturación",
+      chart: "Comisión por mes",
+      net: "Neto para mí",
+      subcommission: "Subcomisión",
+      fee: "Fee",
+      commission: "Mi comisión",
+      month: "Mes",
+      contract_month: "(mes %{month})",
+      subcommission_status: "Subcomisión",
+      projected: "Proyectada",
+      paid: "Pagada",
+      pending: "Pendiente",
+      mark_paid: "Marcar pagada",
+      mark_pending: "Marcar pendiente",
+      empty: "Ningún contrato tiene facturación en estos meses.",
+      from: "Desde",
+      to: "Hasta",
+      all: "Todas",
+      only_pending: "Solo subcomisiones pendientes",
+      pending_subcommission: "Subcomisiones a pagar",
+      status_error: "No se pudo actualizar la subcomisión. Probá de nuevo.",
     },
     changelog: {
       title: "Novedades",

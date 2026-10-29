@@ -358,6 +358,71 @@ export const frenchCrmMessages = {
         humand_stage: "Étape Humand : %{stage}",
       },
     },
+    contracts: {
+      name: "Contrat |||| Contrats",
+      fields: {
+        company_id: "Entreprise cliente",
+        deal_id: "Affaire gagnée",
+        referral_company_id: "Entreprise apporteuse",
+        first_payment_month: "Premier paiement",
+        end_month: "Dernier mois facturé",
+        fee_history: "Abonnement mensuel (USD)",
+        commission_rules: "Ma commission",
+        subcommission_rules: "Sous-commission à l'apporteur",
+        notes: "Notes",
+        current_fee: "Abonnement actuel",
+        current_commission: "Commission actuelle",
+        status: "Statut",
+      },
+      rule_fields: {
+        fee_from_month: "À partir du mois",
+        amount: "Abonnement mensuel (USD)",
+        from_month: "Du mois de contrat",
+        to_month: "Au mois de contrat (vide : sans fin)",
+        percent: "% de l'abonnement",
+        kind: "Type",
+        value: "Valeur",
+      },
+      help: {
+        first_payment_month:
+          "Mois du premier paiement du client à Humand : mois 1 du contrat.",
+        end_month: "Seulement si le contrat est terminé.",
+        fee_history:
+          "Ajoutez une ligne à chaque changement d'abonnement (par exemple quand le nombre d'utilisateurs change). Chaque montant s'applique à partir de son mois.",
+        commission_rules:
+          "% de l'abonnement que Humand vous verse, par mois de contrat. Par défaut : 50 % les mois 1 à 12, puis 30 %.",
+        subcommission_rules:
+          "Ce que vous devez à l'apporteur : un % de votre commission ou un montant fixe en USD par mois, sur une plage de mois de contrat (laissez la fin vide s'il n'y en a pas). Plusieurs lignes s'additionnent.",
+      },
+      subcommission_kinds: {
+        percent: "% de ma commission",
+        fixed: "Montant fixe (USD)",
+      },
+      statuses: {
+        active: "Actif",
+        ended: "Terminé",
+        awaiting_payment: "En attente du premier paiement",
+      },
+      action: {
+        new: "Nouveau contrat",
+        edit: "Modifier le contrat",
+        open: "Voir le contrat",
+        create_from_deal: "Créer le contrat",
+      },
+      validation: {
+        end_before_start:
+          "Le dernier mois facturé doit suivre le premier paiement.",
+        fee_required: "Indiquez l'abonnement mensuel.",
+        fee_incomplete: "Chaque abonnement a besoin d'un mois et d'un montant.",
+        fee_duplicate_month: "Deux abonnements commencent le même mois.",
+        commission_incomplete:
+          "Chaque ligne de commission a besoin d'un premier mois (1 ou plus), d'un dernier mois postérieur ou vide, et d'un % entre 0 et 100.",
+        commission_overlap:
+          "Deux lignes de commission couvrent les mêmes mois.",
+        subcommission_incomplete:
+          "Chaque ligne de sous-commission a besoin d'un type, d'une valeur (100 au plus pour un %), d'un premier mois (1 ou plus) et d'un dernier mois postérieur ou vide.",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -533,6 +598,30 @@ export const frenchCrmMessages = {
       copy: "Copier",
       loading: "Chargement...",
       me: "Moi",
+    },
+    billing: {
+      title: "Facturation",
+      chart: "Commission par mois",
+      net: "Net pour moi",
+      subcommission: "Sous-commission",
+      fee: "Abonnement",
+      commission: "Ma commission",
+      month: "Mois",
+      contract_month: "(mois %{month})",
+      subcommission_status: "Sous-commission",
+      projected: "Prévue",
+      paid: "Payée",
+      pending: "À payer",
+      mark_paid: "Marquer payée",
+      mark_pending: "Marquer à payer",
+      empty: "Aucun contrat n'est facturé sur ces mois.",
+      from: "Du",
+      to: "Au",
+      all: "Toutes",
+      only_pending: "Seulement les sous-commissions à payer",
+      pending_subcommission: "Sous-commissions à payer",
+      status_error:
+        "La sous-commission n'a pas pu être mise à jour. Réessayez.",
     },
     changelog: {
       title: "Notes de version",

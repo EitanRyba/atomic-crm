@@ -2,10 +2,12 @@ import type {
   Company,
   Contact,
   ContactNote,
+  Contract,
   Deal,
   DealNote,
   DealTagAssignment,
   Sale,
+  SubcommissionPayment,
   Tag,
   Task,
 } from "../../../types";
@@ -18,6 +20,8 @@ export interface Db {
   deals: Deal[];
   deal_notes: DealNote[];
   deal_tag_assignments: DealTagAssignment[];
+  contracts: Contract[];
+  subcommission_payments: SubcommissionPayment[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

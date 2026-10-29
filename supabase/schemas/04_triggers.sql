@@ -60,6 +60,19 @@ create or replace trigger set_deal_tag_assignment_audit
     before insert or update on public.deal_tag_assignments
     for each row execute function public.set_deal_tag_assignment_audit();
 
+-- Contracts: owner on insert, last change on update
+create or replace trigger set_contract_sales_id_trigger
+    before insert on public.contracts
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger touch_contracts_updated_at
+    before update on public.contracts
+    for each row execute function public.touch_updated_at();
+
+create or replace trigger touch_subcommission_payments_updated_at
+    before update on public.subcommission_payments
+    for each row execute function public.touch_updated_at();
+
 -- Lowercase contact emails before insert or update (must run before contact_saved)
 create or replace trigger "10_lowercase_contact_emails"
     before insert or update on public.contacts

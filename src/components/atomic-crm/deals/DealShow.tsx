@@ -28,6 +28,7 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
+import { CreateContractButton } from "./CreateContractButton";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 import {
   LOST_STAGE,
@@ -87,6 +88,7 @@ const DealShowContent = () => {
                 </>
               ) : (
                 <>
+                  <CreateContractButton deal={record} />
                   <ArchiveButton record={record} />
                   <EditButton />
                 </>

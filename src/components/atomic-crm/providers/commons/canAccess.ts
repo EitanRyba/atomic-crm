@@ -27,5 +27,13 @@ export const canAccess = <
     return false;
   }
 
+  // Billing (contracts, fees, commissions) is for admins only
+  if (
+    params.resource === "contracts" ||
+    params.resource === "subcommission_payments"
+  ) {
+    return false;
+  }
+
   return true;
 };

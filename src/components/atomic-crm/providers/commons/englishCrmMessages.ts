@@ -352,6 +352,70 @@ export const englishCrmMessages = {
         humand_stage: "Humand stage: %{stage}",
       },
     },
+    contracts: {
+      name: "Contract |||| Contracts",
+      fields: {
+        company_id: "Client company",
+        deal_id: "Won deal",
+        referral_company_id: "Referral company",
+        first_payment_month: "First payment",
+        end_month: "Last month billed",
+        fee_history: "Monthly fee (USD)",
+        commission_rules: "My commission",
+        subcommission_rules: "Sub-commission to the referral company",
+        notes: "Notes",
+        current_fee: "Current fee",
+        current_commission: "Current commission",
+        status: "Status",
+      },
+      rule_fields: {
+        fee_from_month: "From month",
+        amount: "Monthly fee (USD)",
+        from_month: "From contract month",
+        to_month: "To contract month (empty: no end)",
+        percent: "% of the fee",
+        kind: "Type",
+        value: "Value",
+      },
+      help: {
+        first_payment_month:
+          "Month the client first paid Humand: contract month 1.",
+        end_month: "Only if the contract ended.",
+        fee_history:
+          "Add a line each time the fee changes (for example, when the number of users changes). Each fee applies from its month on.",
+        commission_rules:
+          "% of the fee Humand pays you, by contract month. By default: 50% during months 1 to 12, then 30%.",
+        subcommission_rules:
+          "What you owe the referral company: a % of your commission or a fixed USD amount per month, for a range of contract months (leave the end empty if it has none). Several lines add up.",
+      },
+      subcommission_kinds: {
+        percent: "% of my commission",
+        fixed: "Fixed amount (USD)",
+      },
+      statuses: {
+        active: "Active",
+        ended: "Ended",
+        awaiting_payment: "Awaiting first payment",
+      },
+      action: {
+        new: "New contract",
+        edit: "Edit contract",
+        open: "Open contract",
+        create_from_deal: "Create contract",
+      },
+      validation: {
+        end_before_start:
+          "The last month billed must come after the first payment.",
+        fee_required: "Add the monthly fee.",
+        fee_incomplete: "Every fee needs a month and an amount.",
+        fee_duplicate_month: "Two fees start the same month.",
+        commission_incomplete:
+          "Every commission line needs a first month (1 or more), a last month after it or empty, and a % between 0 and 100.",
+        commission_overlap: "Two commission lines cover the same months.",
+        subcommission_incomplete:
+          "Every sub-commission line needs a type, a value (at most 100 for a %), a first month (1 or more) and a last month after it or empty.",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -526,6 +590,30 @@ export const englishCrmMessages = {
       loading: "Loading...",
       me: "Me",
       task_count: "%{smart_count} task |||| %{smart_count} tasks",
+    },
+    billing: {
+      title: "Billing",
+      chart: "Commission per month",
+      net: "Net for me",
+      subcommission: "Sub-commission",
+      fee: "Fee",
+      commission: "My commission",
+      month: "Month",
+      contract_month: "(month %{month})",
+      subcommission_status: "Sub-commission",
+      projected: "Projected",
+      paid: "Paid",
+      pending: "Pending",
+      mark_paid: "Mark paid",
+      mark_pending: "Mark pending",
+      empty: "No contract has billing in these months.",
+      from: "From",
+      to: "To",
+      all: "All",
+      only_pending: "Only pending sub-commissions",
+      pending_subcommission: "Sub-commissions to pay",
+      status_error:
+        "The sub-commission could not be updated. Please try again.",
     },
     changelog: {
       title: "Changelog",

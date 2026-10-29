@@ -14,6 +14,8 @@ alter table public.sales enable row level security;
 alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
+alter table public.contracts enable row level security;
+alter table public.subcommission_payments enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
 -- Companies
@@ -74,3 +76,9 @@ create policy "Enable read access for authenticated users" on public.deal_tag_as
 create policy "Enable insert for authenticated users only" on public.deal_tag_assignments for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.deal_tag_assignments for update to authenticated using (true) with check (true);
 create policy "Deal Tag Assignments Delete Policy" on public.deal_tag_assignments for delete to authenticated using (true);
+
+-- Contracts and sub-commission payments: administrators only
+create policy "Contracts admin access" on public.contracts for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
+create policy "Subcommission payments admin access" on public.subcommission_payments for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
