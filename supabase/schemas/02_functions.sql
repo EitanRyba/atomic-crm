@@ -635,3 +635,13 @@ begin
   return new;
 end;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."google_calendar_status"() RETURNS TABLE("connected" boolean, "google_email" "text")
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select c.sales_id is not null, c.google_email
+  from public.sales s
+  left join public.google_calendar_connections c on c.sales_id = s.id
+  where s.user_id = auth.uid();
+$$;

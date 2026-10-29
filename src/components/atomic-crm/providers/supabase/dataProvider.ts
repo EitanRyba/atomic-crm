@@ -270,6 +270,45 @@ const getDataProviderWithCustomMethods = () => {
 
       return data as number;
     },
+    /** Whether the signed-in user connected their Google Calendar. */
+    async googleCalendarStatus(): Promise<GoogleCalendarStatus> {
+      const { data, error } = await getSupabaseClient().rpc(
+        "google_calendar_status",
+      );
+      if (error) {
+        console.error("google_calendar_status.error", error);
+        throw new Error("Failed to read the Google Calendar connection");
+      }
+      const row = (data as GoogleCalendarStatus[] | null)?.[0];
+      return {
+        connected: !!row?.connected,
+        google_email: row?.google_email ?? null,
+      };
+    },
+    /** The Google page where the user allows access to their calendar. */
+    async googleCalendarConnect(returnTo: string): Promise<string> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        url: string;
+      }>("google_calendar", {
+        method: "POST",
+        body: { action: "connect", return_to: returnTo },
+      });
+      if (!data?.url || error) {
+        console.error("google_calendar.connect.error", error);
+        throw new Error("Failed to connect Google Calendar");
+      }
+      return data.url;
+    },
+    async googleCalendarDisconnect(): Promise<void> {
+      const { error } = await getSupabaseClient().functions.invoke(
+        "google_calendar",
+        { method: "POST", body: { action: "disconnect" } },
+      );
+      if (error) {
+        console.error("google_calendar.disconnect.error", error);
+        throw new Error("Failed to disconnect Google Calendar");
+      }
+    },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {
         id: 1,
@@ -289,6 +328,23 @@ const getDataProviderWithCustomMethods = () => {
   } satisfies DataProvider;
 };
 
+export type GoogleCalendarStatus = {
+  connected: boolean;
+  google_email: string | null;
+};
+
+/**
+ * Mirrors a task in its owner's Google Calendar. Calendar trouble never
+ * blocks the CRM: failures are logged, and the daily digest retries.
+ */
+const syncTaskEvent = async (action: "sync" | "delete", taskId: Identifier) => {
+  const { error } = await getSupabaseClient().functions.invoke(
+    "google_calendar",
+    { method: "POST", body: { action, task_id: taskId } },
+  );
+  if (error) console.error(`google_calendar.${action}.error`, error);
+};
+
 export type CrmDataProvider = ReturnType<
   typeof getDataProviderWithCustomMethods
 >;
@@ -303,6 +359,28 @@ const processConfigLogo = async (logo: any): Promise<string> => {
 };
 
 const lifeCycleCallbacks: ResourceCallbacks[] = [
+  {
+    resource: "tasks",
+    afterCreate: async (result) => {
+      void syncTaskEvent("sync", result.data.id);
+      return result;
+    },
+    // Only the calendar sync writes the event id: a form opened before the
+    // sync must not erase it (the next sync would duplicate the event)
+    beforeUpdate: async (params) => {
+      const { google_event_id: _eventId, ...data } = params.data;
+      return { ...params, data };
+    },
+    afterUpdate: async (result) => {
+      void syncTaskEvent("sync", result.data.id);
+      return result;
+    },
+    // The event goes first: once the task is gone, its event id is lost
+    beforeDelete: async (params) => {
+      await syncTaskEvent("delete", params.id);
+      return params;
+    },
+  },
   {
     resource: "configuration",
     beforeUpdate: async (params) => {

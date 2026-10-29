@@ -6,6 +6,7 @@ import type {
   Deal,
   DealNote,
   DealTagAssignment,
+  Notification,
   Sale,
   SubcommissionPayment,
   Tag,
@@ -22,6 +23,7 @@ export interface Db {
   deal_tag_assignments: DealTagAssignment[];
   contracts: Contract[];
   subcommission_payments: SubcommissionPayment[];
+  notifications: Notification[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

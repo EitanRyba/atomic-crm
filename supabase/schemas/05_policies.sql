@@ -15,6 +15,9 @@ alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
 alter table public.contracts enable row level security;
+alter table public.notifications enable row level security;
+alter table public.google_calendar_connections enable row level security;
+alter table public.google_oauth_states enable row level security;
 alter table public.subcommission_payments enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -82,3 +85,15 @@ create policy "Contracts admin access" on public.contracts for all to authentica
     using (public.is_admin()) with check (public.is_admin());
 create policy "Subcommission payments admin access" on public.subcommission_payments for all to authenticated
     using (public.is_admin()) with check (public.is_admin());
+
+-- Notifications: each user reads and marks as read their own ones
+create policy "Notifications read own" on public.notifications for select to authenticated
+    using (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Notifications update own" on public.notifications for update to authenticated
+    using (sales_id in (select id from public.sales where user_id = auth.uid()))
+    with check (sales_id in (select id from public.sales where user_id = auth.uid()));
+create policy "Notifications delete own" on public.notifications for delete to authenticated
+    using (sales_id in (select id from public.sales where user_id = auth.uid()));
+
+-- google_calendar_connections and google_oauth_states have no policy:
+-- only the edge functions (service role) can use them

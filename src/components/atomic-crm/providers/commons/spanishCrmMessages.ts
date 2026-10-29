@@ -619,6 +619,15 @@ export const spanishCrmMessages = {
       pending_subcommission: "Subcomisiones a pagar",
       status_error: "No se pudo actualizar la subcomisión. Probá de nuevo.",
     },
+    notifications: {
+      title: "Avisos",
+      unread:
+        "%{smart_count} aviso sin leer |||| %{smart_count} avisos sin leer",
+      mark_all_read: "Marcar todos como leídos",
+      empty: "Todavía no tenés avisos.",
+      new: "Nuevo",
+      error: "No se pudieron actualizar los avisos. Probá de nuevo.",
+    },
     changelog: {
       title: "Novedades",
     },
@@ -780,6 +789,17 @@ export const spanishCrmMessages = {
       label: "Navegación del CRM",
     },
     profile: {
+      google_calendar: {
+        title: "Google Calendar",
+        description:
+          "Conectá tu Google Calendar y tus tareas con fecha van a aparecer ahí como eventos, que se actualizan cuando las cambiás, completás o borrás en el CRM.",
+        connect: "Conectar Google Calendar",
+        disconnect: "Desconectar",
+        connected_as: "Conectado como %{email}",
+        connected_notice:
+          "Google Calendar conectado: tus tareas van a aparecer ahí.",
+        error: "No se pudo conectar Google Calendar. Probá de nuevo.",
+      },
       add_secondary_email: "Agregar un email",
       email_taken: "%{email} ya lo usa otro usuario",
       no_secondary_emails: "Ninguno",

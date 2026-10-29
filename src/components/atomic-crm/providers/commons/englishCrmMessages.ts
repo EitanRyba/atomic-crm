@@ -615,6 +615,15 @@ export const englishCrmMessages = {
       status_error:
         "The sub-commission could not be updated. Please try again.",
     },
+    notifications: {
+      title: "Notifications",
+      unread:
+        "%{smart_count} unread notification |||| %{smart_count} unread notifications",
+      mark_all_read: "Mark all as read",
+      empty: "No notifications yet.",
+      new: "New",
+      error: "The notifications could not be updated. Please try again.",
+    },
     changelog: {
       title: "Changelog",
     },
@@ -777,6 +786,17 @@ export const englishCrmMessages = {
       label: "CRM navigation",
     },
     profile: {
+      google_calendar: {
+        title: "Google Calendar",
+        description:
+          "Connect your Google Calendar and your tasks with a due date will show up there as events, updated whenever you change, complete or delete them in the CRM.",
+        connect: "Connect Google Calendar",
+        disconnect: "Disconnect",
+        connected_as: "Connected as %{email}",
+        connected_notice:
+          "Google Calendar connected: your tasks will show up there.",
+        error: "Google Calendar could not be connected. Please try again.",
+      },
       add_secondary_email: "Add an email",
       email_taken: "%{email} is already used by another user",
       no_secondary_emails: "None",

@@ -31,9 +31,12 @@ import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
   selectContact,
+  contactFilter,
   display = "chip",
 }: {
   selectContact?: boolean;
+  // with selectContact: limits the contacts offered (e.g. a company's)
+  contactFilter?: Record<string, unknown>;
   display?: "chip" | "icon";
 }) => {
   const { identity } = useGetIdentity();
@@ -104,7 +107,8 @@ export const AddTask = ({
         resource="tasks"
         record={{
           type: "none",
-          contact_id: contact?.id,
+          // the record in context is a contact unless one must be picked
+          contact_id: selectContact ? undefined : contact?.id,
           due_date: new Date().toISOString(),
           sales_id: identity.id,
         }}
@@ -122,7 +126,10 @@ export const AddTask = ({
                     : translate("resources.tasks.dialog.create")}
                 </DialogTitle>
               </DialogHeader>
-              <TaskFormContent selectContact={selectContact} />
+              <TaskFormContent
+                selectContact={selectContact}
+                contactFilter={contactFilter}
+              />
               <DialogFooter className="w-full justify-end">
                 <SaveButton />
               </DialogFooter>

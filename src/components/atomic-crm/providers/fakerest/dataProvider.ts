@@ -456,6 +456,15 @@ export const createDataProvider = ({
 
       return contacts.length;
     },
+    // The demo has no Google account to talk to
+    googleCalendarStatus: async () => ({
+      connected: false,
+      google_email: null as string | null,
+    }),
+    googleCalendarConnect: async (_returnTo: string): Promise<string> => {
+      throw new Error("Google Calendar is not available in the demo");
+    },
+    googleCalendarDisconnect: async (): Promise<void> => undefined,
     getConfiguration: async (): Promise<ConfigurationContextValue> => {
       const { data } = await baseDataProvider.getOne("configuration", {
         id: 1,

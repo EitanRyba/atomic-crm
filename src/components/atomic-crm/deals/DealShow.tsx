@@ -27,6 +27,7 @@ import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { AddTask } from "../tasks/AddTask";
 import { ContactList } from "./ContactList";
 import { CreateContractButton } from "./CreateContractButton";
 import { findDealLabel, formatISODateString } from "./dealUtils";
@@ -159,6 +160,19 @@ const DealShowContent = () => {
           <DealOutcomeDetails record={record} />
 
           <DealTagsSection deal={record} />
+
+          {!record.archived_at ? (
+            <div className="mx-4">
+              <AddTask
+                selectContact
+                contactFilter={
+                  record.contact_ids?.length
+                    ? { "id@in": `(${record.contact_ids.join(",")})` }
+                    : { company_id: record.company_id }
+                }
+              />
+            </div>
+          ) : null}
 
           {!!record.contact_ids?.length && (
             <div className="m-4">

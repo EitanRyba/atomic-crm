@@ -22,6 +22,7 @@ import {
 } from "react-router-dom";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AddTask } from "../tasks/AddTask";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
@@ -176,6 +177,10 @@ const CompanyShowContent = () => {
                             fields={["last_name", "first_name", "last_seen"]}
                           />
                         )}
+                        <AddTask
+                          selectContact
+                          contactFilter={{ company_id: record.id }}
+                        />
                         <CreateRelatedContactButton />
                       </div>
                       <ContactsIterator />

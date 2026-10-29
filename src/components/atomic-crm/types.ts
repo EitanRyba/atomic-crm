@@ -219,6 +219,18 @@ export type Contract = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+// In-app notification (the bell), written by the daily / weekly digest
+export type Notification = {
+  sales_id: Identifier;
+  kind: string;
+  title: string;
+  body?: string | null;
+  // in-app path, e.g. "/deals/12/show"
+  link?: string | null;
+  created_at: string;
+  read_at?: string | null;
+} & Pick<RaRecord, "id">;
+
 export type SubcommissionPaymentStatus = "pending" | "paid";
 
 export type SubcommissionPayment = {
@@ -254,6 +266,8 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  // written by the Google Calendar sync only
+  google_event_id?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

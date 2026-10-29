@@ -1,0 +1,47 @@
+name: 🔔 Notifications digest
+# Every day at 8:31 in Buenos Aires (11:31 UTC): postponed deals whose date
+# has come go back to Discovery, and each user gets their digest in the bell
+# and by email. On Mondays the digest covers the whole week.
+on:
+    schedule:
+        - cron: "31 11 * * *"
+    workflow_dispatch:
+        inputs:
+            kind:
+                description: "daily or weekly"
+                required: true
+                default: daily
+                type: choice
+                options:
+                    - daily
+                    - weekly
+
+permissions:
+    contents: read
+
+jobs:
+    digest:
+        name: 🔔 Send the digest
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        env:
+            SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        steps:
+            - name: 🔔 Call the digest function
+              run: |
+                  if [ -z "$SUPABASE_URL" ] || [ -z "$CRON_SECRET" ]; then
+                    echo "::warning::Set the SUPABASE_URL and CRON_SECRET repository secrets to send the digests."
+                    exit 0
+                  fi
+                  kind="${{ inputs.kind }}"
+                  if [ -z "$kind" ]; then
+                    if [ "$(date -u +%u)" = "1" ]; then kind=weekly; else kind=daily; fi
+                  fi
+                  echo "Sending the $kind digest"
+                  curl --silent --show-error --fail-with-body --max-time 120 \
+                    --request POST \
+                    --header "x-cron-secret: $CRON_SECRET" \
+                    --header "Content-Type: application/json" \
+                    --data "{\"kind\":\"$kind\"}" \
+                    "$SUPABASE_URL/functions/v1/notifications_digest"

@@ -86,6 +86,9 @@ grant all on function public.set_deal_tag_assignment_audit() to anon;
 grant all on function public.set_deal_tag_assignment_audit() to authenticated;
 grant all on function public.set_deal_tag_assignment_audit() to service_role;
 
+grant execute on function public.google_calendar_status() to authenticated;
+grant execute on function public.google_calendar_status() to service_role;
+
 grant all on function public.touch_updated_at() to anon;
 grant all on function public.touch_updated_at() to authenticated;
 grant all on function public.touch_updated_at() to service_role;
@@ -114,6 +117,12 @@ grant all on table public.deals to service_role;
 grant all on table public.deal_notes to anon;
 grant all on table public.deal_notes to authenticated;
 grant all on table public.deal_notes to service_role;
+
+grant select, update, delete on table public.notifications to authenticated;
+grant all on table public.notifications to service_role;
+
+grant all on table public.google_calendar_connections to service_role;
+grant all on table public.google_oauth_states to service_role;
 
 grant all on table public.contracts to authenticated;
 grant all on table public.contracts to service_role;
@@ -182,6 +191,8 @@ grant all on sequence public."dealNotes_id_seq" to service_role;
 grant all on sequence public.deals_id_seq to anon;
 grant all on sequence public.deals_id_seq to authenticated;
 grant all on sequence public.deals_id_seq to service_role;
+
+grant all on sequence public.notifications_id_seq to service_role;
 
 grant all on sequence public.contracts_id_seq to authenticated;
 grant all on sequence public.contracts_id_seq to service_role;

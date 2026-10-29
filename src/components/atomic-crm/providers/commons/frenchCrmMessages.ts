@@ -623,6 +623,15 @@ export const frenchCrmMessages = {
       status_error:
         "La sous-commission n'a pas pu être mise à jour. Réessayez.",
     },
+    notifications: {
+      title: "Notifications",
+      unread:
+        "%{smart_count} notification non lue |||| %{smart_count} notifications non lues",
+      mark_all_read: "Tout marquer comme lu",
+      empty: "Aucune notification pour l'instant.",
+      new: "Nouveau",
+      error: "Les notifications n'ont pas pu être mises à jour. Réessayez.",
+    },
     changelog: {
       title: "Notes de version",
     },
@@ -789,6 +798,16 @@ export const frenchCrmMessages = {
       label: "Navigation CRM",
     },
     profile: {
+      google_calendar: {
+        title: "Google Agenda",
+        description:
+          "Connectez votre Google Agenda : vos tâches avec une échéance y apparaîtront comme événements, mis à jour quand vous les modifiez, terminez ou supprimez dans le CRM.",
+        connect: "Connecter Google Agenda",
+        disconnect: "Déconnecter",
+        connected_as: "Connecté en tant que %{email}",
+        connected_notice: "Google Agenda connecté : vos tâches y apparaîtront.",
+        error: "Google Agenda n'a pas pu être connecté. Réessayez.",
+      },
       add_secondary_email: "Ajouter un e-mail",
       email_taken: "%{email} est déjà utilisée par un autre utilisateur",
       no_secondary_emails: "Aucun",
