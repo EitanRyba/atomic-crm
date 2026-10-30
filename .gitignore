@@ -63,3 +63,7 @@ backup-before-stage-1.sql
 backup-before-stage-1/
 backup-before-stage-2/
 backup-before-stage-3/
+backup-before-stage-4/
+
+# Security audit reports (describe vulnerabilities; never commit)
+/security-reports/

@@ -162,6 +162,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/GoogleCalendarCard.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/DealStageTagsInput.tsx",
           "type": "registry:component"
         },
@@ -555,6 +559,10 @@
         },
         {
           "path": "src/components/atomic-crm/layout/PullToRefresh.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/layout/NotificationsBell.tsx",
           "type": "registry:component"
         },
         {
