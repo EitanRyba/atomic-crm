@@ -9,7 +9,7 @@ import {
 
 import { CreateSheet } from "../misc/CreateSheet";
 import type { Deal } from "../types";
-import { cleanupTaskAttendees } from "./meetingTasks";
+import { cleanupTaskMeetingFields } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
 export interface TaskCreateSheetProps {
@@ -65,7 +65,7 @@ export const TaskCreateSheet = ({
         sales_id: identity.id,
         attendees: [],
       }}
-      transform={cleanupTaskAttendees}
+      transform={cleanupTaskMeetingFields}
       mutationOptions={{
         onSuccess: handleSuccess,
       }}

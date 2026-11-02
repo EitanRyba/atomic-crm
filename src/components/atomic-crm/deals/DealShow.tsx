@@ -262,6 +262,7 @@ const NextMeeting = ({ deal }: { deal: Deal }) => {
         <CalendarClock className="w-4 h-4" />
         {translate("resources.tasks.meeting.scheduled", { date })}
       </span>
+      {meeting.meeting_title ? <span>{meeting.meeting_title}</span> : null}
       {meeting.meet_url?.startsWith("https://") ? (
         <a
           href={meeting.meet_url}

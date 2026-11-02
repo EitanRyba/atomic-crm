@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import type { Deal } from "../types";
-import { cleanupTaskAttendees } from "./meetingTasks";
+import { cleanupTaskMeetingFields } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
 /**
@@ -106,7 +106,7 @@ export const AddTask = ({
           sales_id: identity.id,
           attendees: [],
         }}
-        transform={cleanupTaskAttendees}
+        transform={cleanupTaskMeetingFields}
         mutationOptions={{ onSuccess: handleSuccess }}
       >
         <Dialog open={open} onOpenChange={() => setOpen(false)}>

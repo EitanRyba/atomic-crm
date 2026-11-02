@@ -6,7 +6,17 @@ import { required } from "ra-core";
 import { DateTimeInput } from "@/components/admin";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { MeetingTitleInput } from "./MeetingTitleInput";
 import { TaskAttendeesInput } from "./TaskAttendeesInput";
+import { isMeetingTaskType } from "./meetingTasks";
+
+const requiredText = required();
+
+// A demo or meeting has a title: its description is optional
+const validateText = (value: unknown, values: Record<string, unknown>) =>
+  isMeetingTaskType(values?.type as string | undefined)
+    ? undefined
+    : requiredText(value, values);
 
 export const TaskFormContent = ({
   selectDeal,
@@ -23,7 +33,7 @@ export const TaskFormContent = ({
       <TextInput
         autoFocus
         source="text"
-        validate={required()}
+        validate={validateText}
         multiline
         className="m-0"
         helperText={false}
@@ -62,6 +72,8 @@ export const TaskFormContent = ({
           helperText={false}
         />
       </div>
+
+      <MeetingTitleInput />
 
       <TaskAttendeesInput />
     </div>

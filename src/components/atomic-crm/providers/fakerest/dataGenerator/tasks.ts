@@ -51,6 +51,7 @@ export const generateTasks = (db: Db) => {
       sales_id: 0,
       attendees: [],
       meet_url: null,
+      meeting_title: null,
     };
   });
 };

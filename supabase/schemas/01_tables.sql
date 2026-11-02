@@ -172,6 +172,8 @@ create table public.tasks (
     attendees jsonb not null default '[]'::jsonb,
     -- the Google Meet link of the calendar event, written by the calendar sync
     meet_url text,
+    -- the title of a demo or meeting: the calendar event summary its guests see
+    meeting_title text,
     constraint tasks_deal_or_contact_check check (deal_id is not null or contact_id is not null)
 );
 

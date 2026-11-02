@@ -22,6 +22,7 @@ import {
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Deal, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
+import { isMeetingTaskType } from "./meetingTasks";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -120,6 +121,13 @@ export const Task = ({
                   &nbsp;
                 </>
               )}
+              {/* a demo or meeting shows its title, then its description */}
+              {isMeetingTaskType(task.type) && task.meeting_title ? (
+                <>
+                  <span className="font-medium">{task.meeting_title}</span>
+                  {task.text ? " · " : null}
+                </>
+              ) : null}
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground">

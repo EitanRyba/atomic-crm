@@ -63,6 +63,8 @@ export const formatDueDate = (timestamp: string): string => {
 /** A task of the digest, with its deal (or, for older tasks, its contact). */
 export type DigestTask = {
   text: string | null;
+  // demo and meeting tasks have a title, and maybe no text
+  meeting_title?: string | null;
   due_date: string;
   deals: { name: string | null } | null;
   contacts: { first_name: string | null; last_name: string | null } | null;
@@ -75,7 +77,10 @@ export const taskLine = (task: DigestTask): string => {
     [task.contacts?.first_name, task.contacts?.last_name]
       .filter(Boolean)
       .join(" ");
-  return `${formatDueDate(task.due_date)} · ${task.text ?? ""}${who ? ` (${who})` : ""}`;
+  const what = [task.meeting_title?.trim(), task.text?.trim()]
+    .filter(Boolean)
+    .join(" · ");
+  return `${formatDueDate(task.due_date)} · ${what}${who ? ` (${who})` : ""}`;
 };
 
 type MonthRule = { from_month: number; to_month?: number | null };

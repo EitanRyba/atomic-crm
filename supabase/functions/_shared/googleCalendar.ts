@@ -136,7 +136,7 @@ const getTask = async (taskId: number): Promise<TaskRow | null> => {
   const { data, error } = await supabaseAdmin
     .from("tasks")
     .select(
-      "id, text, type, due_date, done_date, sales_id, contact_id, deal_id, google_event_id, attendees, meet_url, contacts(first_name, last_name, companies(name)), deals(name, companies(name))",
+      "id, text, type, due_date, done_date, sales_id, contact_id, deal_id, google_event_id, attendees, meet_url, meeting_title, contacts(first_name, last_name, companies(name)), deals(name, companies(name))",
     )
     .eq("id", taskId)
     .maybeSingle();

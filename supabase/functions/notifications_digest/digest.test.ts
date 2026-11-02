@@ -128,6 +128,20 @@ describe("taskLine", () => {
     ).toBe("28/10 14:30 · Enviar propuesta (Ada Lovelace)");
   });
 
+  it("shows the title of a meeting, and its text when it has one", () => {
+    expect(
+      taskLine({
+        ...base,
+        text: null,
+        meeting_title: "Demo - Acme",
+        deals: { name: "Acme rollout" },
+      }),
+    ).toBe("28/10 14:30 · Demo - Acme (Acme rollout)");
+    expect(taskLine({ ...base, meeting_title: "Demo - Acme" })).toBe(
+      "28/10 14:30 · Demo - Acme · Enviar propuesta",
+    );
+  });
+
   it("names nobody when the task has neither", () => {
     expect(taskLine(base)).toBe("28/10 14:30 · Enviar propuesta");
   });

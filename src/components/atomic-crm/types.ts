@@ -287,6 +287,8 @@ export type Task = {
   google_event_id?: string | null;
   /** Guests of a demo or meeting task */
   attendees?: TaskAttendee[];
+  /** Title of a demo or meeting: the calendar event summary the guests see */
+  meeting_title?: string | null;
   /** Google Meet link of the calendar event, written by the calendar sync */
   meet_url?: string | null;
 } & Pick<RaRecord, "id">;

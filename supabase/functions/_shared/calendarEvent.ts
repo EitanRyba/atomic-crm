@@ -19,6 +19,7 @@ export type CalendarTask = {
   deal_id: number | null;
   attendees: TaskAttendee[] | null;
   meet_url: string | null;
+  meeting_title: string | null;
   contacts: {
     first_name: string | null;
     last_name: string | null;
@@ -52,6 +53,30 @@ export const eventAttendees = (task: Pick<CalendarTask, "attendees">) => {
           : { email },
       ];
     },
+  );
+};
+
+// The labels of the meeting task types, as the CRM shows them
+const MEETING_TYPE_LABELS: Record<string, string> = {
+  demo: "Demo",
+  meeting: "Reunión",
+};
+
+/**
+ * The title the guests of a demo or meeting see: its meeting title, or else
+ * "<type> - <company>" (e.g. "Demo - McDonalds"), as the CRM form suggests.
+ */
+export const meetingTitle = (task: CalendarTask) => {
+  const title = task.meeting_title?.trim();
+  if (title) return title;
+  const company =
+    task.deals?.companies?.name ?? task.contacts?.companies?.name ?? null;
+  return (
+    [MEETING_TYPE_LABELS[task.type ?? ""] ?? task.type, company]
+      .filter(Boolean)
+      .join(" - ") ||
+    task.text ||
+    ""
   );
 };
 
@@ -100,12 +125,14 @@ export const buildEvent = (
   const start = new Date(task.due_date!);
   const end = new Date(start.getTime() + EVENT_MINUTES * 60 * 1000);
   const meeting = isMeetingTask(task);
+  // The guests of a meeting see its title and description: no CRM marks or
+  // links there
+  const summary = meeting
+    ? meetingTitle(task)
+    : `${task.done_date ? DONE_PREFIX : ""}${eventTitle(task)}`;
   const event: Record<string, unknown> = {
-    summary: `${task.done_date ? DONE_PREFIX : ""}${eventTitle(task)}`.slice(
-      0,
-      250,
-    ),
-    description: crmLink(task, appUrl),
+    summary: summary.slice(0, 250),
+    description: meeting ? (task.text?.trim() ?? "") : crmLink(task, appUrl),
     start: { dateTime: start.toISOString() },
     end: { dateTime: end.toISOString() },
     source: appUrl ? { title: "Humand CRM", url: appUrl } : undefined,

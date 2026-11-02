@@ -6,7 +6,7 @@ export const MEETING_TASK_TYPES = ["demo", "meeting"];
 export const isMeetingTaskType = (type: string | null | undefined): boolean =>
   !!type && MEETING_TASK_TYPES.includes(type);
 
-export type AttendeeGroup = "company" | "referrer" | "team";
+export type AttendeeGroup = "company" | "deal" | "referrer" | "team";
 
 export interface AttendeeCandidate extends TaskAttendee {
   group: AttendeeGroup;
@@ -21,37 +21,40 @@ type SaleLike = Pick<
 const fullName = (first?: string | null, last?: string | null) =>
   [first, last].filter(Boolean).join(" ").trim();
 
-const firstEmail = (contact: ContactLike) =>
-  contact.email_jsonb?.find((entry) => entry?.email?.trim())?.email?.trim();
+/** One candidate per email of the contact: a contact may have several. */
+const contactCandidates = (contacts: ContactLike[], group: AttendeeGroup) =>
+  contacts.flatMap((contact) =>
+    (contact.email_jsonb ?? []).map((entry) => ({
+      email: entry?.email?.trim(),
+      name: fullName(contact.first_name, contact.last_name),
+      group,
+    })),
+  );
 
 /**
- * Who can be invited to a demo or meeting of a deal: the contacts of the
- * deal's company, the contacts of the company that referred it, and the other
- * CRM users (not disabled, not the current user). Only people with an email,
- * each email once, in that order.
+ * Who can be invited to a demo or meeting of a deal: every email of the
+ * contacts of the deal's company, of the contacts linked to the deal, and of
+ * the contacts of the company that referred it, then the other CRM users
+ * (not disabled, not the current user). Each email once (whatever its case),
+ * in that order.
  */
 export const buildAttendeeCandidates = ({
   companyContacts = [],
+  dealContacts = [],
   referrerContacts = [],
   sales = [],
   currentSaleId,
 }: {
   companyContacts?: ContactLike[];
+  dealContacts?: ContactLike[];
   referrerContacts?: ContactLike[];
   sales?: SaleLike[];
   currentSaleId?: Sale["id"] | null;
 }): AttendeeCandidate[] => {
   const candidates = [
-    ...companyContacts.map((contact) => ({
-      email: firstEmail(contact),
-      name: fullName(contact.first_name, contact.last_name),
-      group: "company" as const,
-    })),
-    ...referrerContacts.map((contact) => ({
-      email: firstEmail(contact),
-      name: fullName(contact.first_name, contact.last_name),
-      group: "referrer" as const,
-    })),
+    ...contactCandidates(companyContacts, "company"),
+    ...contactCandidates(dealContacts, "deal"),
+    ...contactCandidates(referrerContacts, "referrer"),
     ...sales
       .filter(
         (sale) =>
@@ -75,17 +78,26 @@ export const buildAttendeeCandidates = ({
   });
 };
 
-/** Only demo and meeting tasks keep guests. */
-export const cleanupTaskAttendees = <T extends Partial<Task>>(values: T): T =>
+/** "Demo - McDonalds": the default title of a meeting, for its guests. */
+export const defaultMeetingTitle = (
+  typeLabel: string | null | undefined,
+  companyName: string | null | undefined,
+): string => [typeLabel, companyName].filter(Boolean).join(" - ");
+
+/** Only demo and meeting tasks keep guests and a meeting title. */
+export const cleanupTaskMeetingFields = <T extends Partial<Task>>(
+  values: T,
+): T =>
   isMeetingTaskType(values.type)
     ? {
         ...values,
+        meeting_title: values.meeting_title?.trim() || null,
         attendees: (values.attendees ?? []).map(({ email, name }) => ({
           email,
           name,
         })),
       }
-    : { ...values, attendees: [] };
+    : { ...values, attendees: [], meeting_title: null };
 
 /** The next demo or meeting of a deal: not done, due now or later. */
 export const findNextMeeting = <

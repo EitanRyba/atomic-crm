@@ -102,7 +102,7 @@ const getOpenTasks = async (until: string): Promise<TaskRow[]> => {
   const { data, error } = await supabaseAdmin
     .from("tasks")
     .select(
-      "id, text, due_date, sales_id, deals(name), contacts(first_name, last_name)",
+      "id, text, meeting_title, due_date, sales_id, deals(name), contacts(first_name, last_name)",
     )
     .is("done_date", null)
     .not("due_date", "is", null)

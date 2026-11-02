@@ -58,6 +58,18 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
     },
     { enabled: companyIds.length > 0 },
   );
+  // The contacts linked to the deal, whatever their company
+  const dealContactIds = deal?.contact_ids ?? [];
+  const { data: dealContacts, isPending: isDealContactsPending } =
+    useGetList<Contact>(
+      "contacts_summary",
+      {
+        filter: { "id@in": `(${dealContactIds.join(",")})` },
+        pagination: { page: 1, perPage: 500 },
+        sort: { field: "last_name", order: "ASC" },
+      },
+      { enabled: dealContactIds.length > 0 },
+    );
   const { data: sales, isPending: isSalesPending } = useGetList<Sale>("sales", {
     filter: { "disabled@neq": true },
     pagination: { page: 1, perPage: 200 },
@@ -70,6 +82,7 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
         companyContacts: contacts?.filter(
           (contact) => String(contact.company_id) === String(company?.id),
         ),
+        dealContacts: dealContactIds.length ? dealContacts : [],
         referrerContacts:
           company?.referred_by_company_id != null
             ? contacts?.filter(
@@ -81,7 +94,14 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
         sales,
         currentSaleId: identity?.id,
       }),
-    [contacts, company, sales, identity?.id],
+    [
+      contacts,
+      dealContacts,
+      dealContactIds.length,
+      company,
+      sales,
+      identity?.id,
+    ],
   );
 
   const isPending =
@@ -89,7 +109,8 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
     isDealPending ||
     isSalesPending ||
     (deal?.company_id != null && isCompanyPending) ||
-    (companyIds.length > 0 && isContactsPending);
+    (companyIds.length > 0 && isContactsPending) ||
+    (dealContactIds.length > 0 && isDealContactsPending);
 
   return { candidates, isPending };
 };

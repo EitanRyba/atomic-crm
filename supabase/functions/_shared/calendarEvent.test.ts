@@ -21,6 +21,7 @@ const task = (overrides: Partial<CalendarTask> = {}): CalendarTask => ({
     { email: "teo@humand.example", name: "Teo" },
   ],
   meet_url: null,
+  meeting_title: null,
   contacts: null,
   deals: { name: "Rollout", companies: { name: "Acme" } },
   ...overrides,
@@ -33,8 +34,9 @@ describe("buildEvent", () => {
     const event = buildEvent(task(), options);
 
     expect(event).toMatchObject({
-      summary: "Demo de la plataforma — Rollout (Acme)",
-      description: "https://crm.example/#/deals/12/show",
+      // what the guests see: "<type> - <company>" and the task text
+      summary: "Demo - Acme",
+      description: "Demo de la plataforma",
       start: { dateTime: "2026-11-10T15:00:00.000Z" },
       end: { dateTime: "2026-11-10T15:30:00.000Z" },
       attendees: [
@@ -48,6 +50,27 @@ describe("buildEvent", () => {
         },
       },
     });
+  });
+
+  it("titles a meeting with its meeting title", () => {
+    const event = buildEvent(
+      task({ type: "meeting", meeting_title: "Kickoff Acme", text: null }),
+      options,
+    );
+    expect(event.summary).toBe("Kickoff Acme");
+    expect(event.description).toBe("");
+  });
+
+  it("titles a meeting without a meeting title after its type and company", () => {
+    expect(buildEvent(task({ type: "meeting" }), options).summary).toBe(
+      "Reunión - Acme",
+    );
+  });
+
+  it("keeps the task title and CRM link of the other task types", () => {
+    const event = buildEvent(task({ type: "call" }), options);
+    expect(event.summary).toBe("Demo de la plataforma — Rollout (Acme)");
+    expect(event.description).toBe("https://crm.example/#/deals/12/show");
   });
 
   it("does not ask again for a Meet link the meeting already has", () => {

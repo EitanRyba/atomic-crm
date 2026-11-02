@@ -3,7 +3,7 @@ import type { Identifier } from "ra-core";
 import { useTranslate } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import type { Deal, Task } from "../types";
-import { cleanupTaskAttendees } from "./meetingTasks";
+import { cleanupTaskMeetingFields } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
 export interface TaskEditSheetProps {
@@ -43,7 +43,7 @@ export const TaskEditSheet = ({
         />
       }
       redirect={false}
-      transform={cleanupTaskAttendees}
+      transform={cleanupTaskMeetingFields}
       open={open}
       onOpenChange={onOpenChange}
     >
