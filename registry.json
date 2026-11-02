@@ -78,11 +78,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/TaskAttendeesInput.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/Task.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/tasks/MobileTasksList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/meetingTasks.ts",
           "type": "registry:component"
         },
         {
@@ -674,6 +682,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/activeDeal.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/tags/useDealTags.ts",
           "type": "registry:component"
         },
@@ -743,6 +755,10 @@
         },
         {
           "path": "src/components/atomic-crm/dataImport/createEachRow.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dataImport/companySites.ts",
           "type": "registry:component"
         },
         {
@@ -870,10 +886,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/ContactTasksList.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/ContactShow.tsx",
           "type": "registry:component"
         },
@@ -970,6 +982,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/companySites.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyShow.tsx",
           "type": "registry:component"
         },
@@ -999,6 +1015,14 @@
         },
         {
           "path": "src/components/atomic-crm/companies/CompanyCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/CompanyContactsInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/companyContacts.ts",
           "type": "registry:component"
         },
         {
