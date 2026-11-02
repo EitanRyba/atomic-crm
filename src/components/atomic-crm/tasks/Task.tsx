@@ -20,17 +20,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Task as TData } from "../types";
+import type { Contact, Deal, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Task = ({
   task,
-  showContact,
+  showDeal,
 }: {
   task: TData;
-  showContact?: boolean;
+  // shows the deal of the task (or, for older tasks, its contact)
+  showDeal?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -125,7 +126,27 @@ export const Task = ({
               {translate("resources.tasks.fields.due_short")}
               &nbsp;
               <DateField source="due_date" record={task} showDate showTime />
-              {showContact && (
+              {showDeal && task.deal_id != null ? (
+                <ReferenceField<TData, Deal>
+                  source="deal_id"
+                  reference="deals"
+                  record={task}
+                  link="show"
+                  className="inline text-sm text-muted-foreground"
+                  render={({ referenceRecord }) => {
+                    if (!referenceRecord) return null;
+                    return (
+                      <>
+                        {" "}
+                        {translate("resources.tasks.regarding_deal", {
+                          name: referenceRecord.name,
+                        })}
+                      </>
+                    );
+                  }}
+                />
+              ) : null}
+              {showDeal && task.deal_id == null && task.contact_id != null ? (
                 <ReferenceField<TData, Contact>
                   source="contact_id"
                   reference="contacts"
@@ -144,7 +165,7 @@ export const Task = ({
                     );
                   }}
                 />
-              )}
+              ) : null}
             </div>
           </div>
         </div>

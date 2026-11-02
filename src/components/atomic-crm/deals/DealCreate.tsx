@@ -4,6 +4,7 @@ import {
   useDataProvider,
   useGetIdentity,
   useListContext,
+  useNotify,
   useRedirect,
   type GetListResult,
 } from "ra-core";
@@ -14,9 +15,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
+import { ACTIVE_DEAL_ERROR, isActiveDealConflictError } from "./activeDeal";
 
 export const DealCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();
+  const notify = useNotify();
   const dataProvider = useDataProvider();
   const { data: allDeals } = useListContext<Deal>();
 
@@ -75,7 +78,19 @@ export const DealCreate = ({ open }: { open: boolean }) => {
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
       <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-        <Create resource="deals" mutationOptions={{ onSuccess }}>
+        <Create
+          resource="deals"
+          mutationOptions={{
+            onSuccess,
+            onError: (error) =>
+              notify(
+                isActiveDealConflictError(error)
+                  ? ACTIVE_DEAL_ERROR
+                  : "ra.notification.http_error",
+                { type: "error" },
+              ),
+          }}
+        >
           <Form
             defaultValues={{
               sales_id: identity?.id,

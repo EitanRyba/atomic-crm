@@ -110,7 +110,8 @@ select
     (
         select count(*) from public.companies rc
         where rc.referred_by_company_id = c.id
-    ) as nb_referred_clients
+    ) as nb_referred_clients,
+    c.sites
 from public.companies c
     left join public.deals d on c.id = d.company_id
     left join public.contacts co on c.id = co.company_id

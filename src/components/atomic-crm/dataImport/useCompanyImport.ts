@@ -9,6 +9,7 @@ import {
 } from "../companies/placeholderCompany";
 import type { Company } from "../types";
 import { parseCompanyCategories } from "./companyCategories";
+import { parseCompanySites } from "./companySites";
 import { findCompanyByName } from "./useCompanyResolver";
 import {
   competitorChoices,
@@ -22,8 +23,10 @@ import type { ImportCell, ProcessImportBatch } from "./types";
  * Creates a company per CSV row. Unknown columns are ignored, missing ones are
  * left empty — except `name`, which the database requires.
  *
- * - `category` holds "cliente", "referido" or both (see
+ * - `category` holds "cliente", "referidor" or both (see
  *   `parseCompanyCategories`).
+ * - `sites` holds the JSON array of sites a company export writes; without
+ *   it, the address columns become a single "Sede principal" site.
  * - `referred_by` names the referral company that introduced a client: an
  *   existing company becomes a referral company if it was not one, an unknown
  *   one is created as a referral company.
@@ -137,6 +140,7 @@ export function useCompanyImport(): ProcessImportBatch {
                 row.current_competitor,
                 competitorOptions,
               ),
+              sites: parseCompanySites(row),
               ...categories,
               referred_by_company_id: referrer?.id ?? null,
               sales_id: identity?.id,

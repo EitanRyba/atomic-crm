@@ -24,7 +24,6 @@ export const type: string[] = [
   "call",
   "call",
   "demo",
-  "lunch",
   "meeting",
   "follow-up",
   "follow-up",
@@ -34,20 +33,24 @@ export const type: string[] = [
 ];
 
 export const generateTasks = (db: Db) => {
+  if (!db.deals.length) return [];
+  // Tasks belong to deals
   return Array.from(Array(400).keys()).map<Task>((id) => {
-    const contact = random.arrayElement(db.contacts);
-    contact.nb_tasks = (contact.nb_tasks ?? 0) + 1;
+    const deal = random.arrayElement(db.deals);
     return {
       id,
-      contact_id: contact.id,
+      deal_id: deal.id,
+      contact_id: null,
       type: random.arrayElement(defaultTaskTypes).value,
       text: lorem.sentence(),
       due_date: randomDate(
-        datatype.boolean() ? new Date() : new Date(contact.first_seen),
+        datatype.boolean() ? new Date() : new Date(deal.created_at),
         new Date(Date.now() + 100 * 24 * 60 * 60 * 1000),
       ).toISOString(),
       done_date: undefined,
       sales_id: 0,
+      attendees: [],
+      meet_url: null,
     };
   });
 };

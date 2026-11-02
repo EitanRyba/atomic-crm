@@ -2,17 +2,23 @@
 // Needs the GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET secrets, and APP_URLS
 // (comma-separated CRM addresses, the first one is used in event links).
 import { supabaseAdmin } from "./supabaseAdmin.ts";
+import {
+  buildEvent,
+  eventQuery,
+  extractMeetUrl,
+  isMeetingTask,
+  sendUpdatesFor,
+  type CalendarTask,
+} from "./calendarEvent.ts";
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const CALENDAR_API = "https://www.googleapis.com/calendar/v3";
+// calendar.events also covers the guests and the Meet link of meetings
 export const GOOGLE_SCOPES = [
   "openid",
   "email",
   "https://www.googleapis.com/auth/calendar.events",
 ];
-// Timed tasks become events of this length
-const EVENT_MINUTES = 30;
-const DONE_PREFIX = "✓ ";
 
 export const getAppUrls = (): string[] =>
   (Deno.env.get("APP_URLS") ?? "")
@@ -121,55 +127,21 @@ const getAccessToken = async (connection: Connection) => {
   }
 };
 
-type TaskRow = {
-  id: number;
-  text: string | null;
-  type: string | null;
-  due_date: string | null;
-  done_date: string | null;
+type TaskRow = CalendarTask & {
   sales_id: number | null;
-  contact_id: number;
   google_event_id: string | null;
-  contacts: {
-    first_name: string | null;
-    last_name: string | null;
-    companies: { name: string | null } | null;
-  } | null;
 };
 
 const getTask = async (taskId: number): Promise<TaskRow | null> => {
   const { data, error } = await supabaseAdmin
     .from("tasks")
     .select(
-      "id, text, type, due_date, done_date, sales_id, contact_id, google_event_id, contacts(first_name, last_name, companies(name))",
+      "id, text, type, due_date, done_date, sales_id, contact_id, deal_id, google_event_id, attendees, meet_url, contacts(first_name, last_name, companies(name)), deals(name, companies(name))",
     )
     .eq("id", taskId)
     .maybeSingle();
   if (error) throw error;
-  return data as TaskRow | null;
-};
-
-const buildEvent = (task: TaskRow) => {
-  const contact = task.contacts;
-  const who = [contact?.first_name, contact?.last_name]
-    .filter(Boolean)
-    .join(" ");
-  const company = contact?.companies?.name;
-  const title = [task.text ?? "", who && `— ${who}`, company && `(${company})`]
-    .filter(Boolean)
-    .join(" ");
-  const start = new Date(task.due_date!);
-  const end = new Date(start.getTime() + EVENT_MINUTES * 60 * 1000);
-  const appUrl = getAppUrls()[0];
-  return {
-    summary: `${task.done_date ? DONE_PREFIX : ""}${title}`.slice(0, 250),
-    description: appUrl
-      ? `${appUrl.replace(/\/?$/, "/")}#/contacts/${task.contact_id}/show`
-      : undefined,
-    start: { dateTime: start.toISOString() },
-    end: { dateTime: end.toISOString() },
-    source: appUrl ? { title: "Humand CRM", url: appUrl } : undefined,
-  };
+  return data as unknown as TaskRow | null;
 };
 
 const calendarFetch = (
@@ -189,11 +161,20 @@ const calendarFetch = (
 const eventPath = (calendarId: string, eventId?: string) =>
   `/calendars/${encodeURIComponent(calendarId)}/events${eventId ? `/${encodeURIComponent(eventId)}` : ""}`;
 
-const saveEventId = (taskId: number, eventId: string | null) =>
-  supabaseAdmin
+const saveEvent = async (
+  taskId: number,
+  values: { google_event_id?: string | null; meet_url?: string | null },
+) => {
+  const { error } = await supabaseAdmin
     .from("tasks")
-    .update({ google_event_id: eventId })
+    .update(values)
     .eq("id", taskId);
+  if (error) throw error;
+};
+
+/** The Meet link to keep after a sync: meetings only. */
+const meetUrlAfterSync = (task: TaskRow, event: unknown) =>
+  isMeetingTask(task) ? (extractMeetUrl(event) ?? task.meet_url) : null;
 
 /**
  * Creates, updates or removes the calendar event of a task, in the calendar
@@ -214,36 +195,62 @@ export const syncTask = async (taskId: number): Promise<string> => {
         accessToken,
         connection.calendar_id,
         task.google_event_id,
+        sendUpdatesFor(task),
       );
-      await saveEventId(task.id, null);
+      await saveEvent(task.id, { google_event_id: null, meet_url: null });
     }
     return "no_date";
   }
 
-  const event = JSON.stringify(buildEvent(task));
+  const appUrl = getAppUrls()[0];
+  // Meetings invite their guests: they get the invitation and its updates
+  const query = eventQuery(sendUpdatesFor(task));
   if (task.google_event_id) {
     const response = await calendarFetch(
       accessToken,
-      eventPath(connection.calendar_id, task.google_event_id),
-      { method: "PATCH", body: event },
+      `${eventPath(connection.calendar_id, task.google_event_id)}${query}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(
+          buildEvent(task, { appUrl, requestId: crypto.randomUUID() }),
+        ),
+      },
     );
-    if (response.ok) return "updated";
+    if (response.ok) {
+      const meetUrl = meetUrlAfterSync(task, await response.json());
+      if (meetUrl !== task.meet_url) {
+        await saveEvent(task.id, { meet_url: meetUrl });
+      }
+      return "updated";
+    }
     // The event was deleted in Google Calendar: create it again
     if (response.status !== 404 && response.status !== 410) {
       throw new Error(`Google Calendar update failed: ${response.status}`);
     }
   }
 
+  // A new event asks for a new Meet link, even if the task had one
   const response = await calendarFetch(
     accessToken,
-    eventPath(connection.calendar_id),
-    { method: "POST", body: event },
+    `${eventPath(connection.calendar_id)}${query}`,
+    {
+      method: "POST",
+      body: JSON.stringify(
+        buildEvent(
+          { ...task, meet_url: null },
+          { appUrl, requestId: crypto.randomUUID() },
+        ),
+      ),
+    },
   );
   if (!response.ok) {
     throw new Error(`Google Calendar create failed: ${response.status}`);
   }
   const created = await response.json();
-  await saveEventId(task.id, created.id);
+  await saveEvent(task.id, {
+    google_event_id: created.id,
+    meet_url: meetUrlAfterSync({ ...task, meet_url: null }, created),
+  });
   return "created";
 };
 
@@ -251,10 +258,12 @@ const deleteEvent = async (
   accessToken: string,
   calendarId: string,
   eventId: string,
+  sendUpdates: "all" | "none",
 ) => {
+  // Guests of a pending meeting get the cancellation
   const response = await calendarFetch(
     accessToken,
-    eventPath(calendarId, eventId),
+    `${eventPath(calendarId, eventId)}?sendUpdates=${sendUpdates}`,
     { method: "DELETE" },
   );
   // Already gone is fine
@@ -270,7 +279,12 @@ export const deleteTaskEvent = async (taskId: number): Promise<string> => {
   const connection = await getConnection(task.sales_id);
   if (!connection) return "not_connected";
   const accessToken = await getAccessToken(connection);
-  await deleteEvent(accessToken, connection.calendar_id, task.google_event_id);
-  await saveEventId(task.id, null);
+  await deleteEvent(
+    accessToken,
+    connection.calendar_id,
+    task.google_event_id,
+    sendUpdatesFor(task),
+  );
+  await saveEvent(task.id, { google_event_id: null, meet_url: null });
   return "deleted";
 };

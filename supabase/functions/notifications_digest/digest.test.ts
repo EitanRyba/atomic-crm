@@ -8,6 +8,7 @@ import {
   endOfWeek,
   formatDay,
   localDate,
+  taskLine,
   unpaidSubcommissionMonths,
 } from "./digest";
 
@@ -97,5 +98,37 @@ describe("digest rendering", () => {
     });
     expect(html).toContain("Llamar &lt;Acme&gt;");
     expect(html).not.toContain("<Acme>");
+  });
+});
+
+describe("taskLine", () => {
+  const base = {
+    text: "Enviar propuesta",
+    due_date: "2026-10-28T17:30:00Z",
+    deals: null,
+    contacts: null,
+  };
+
+  it("names the deal of the task", () => {
+    expect(
+      taskLine({
+        ...base,
+        deals: { name: "Acme rollout" },
+        contacts: { first_name: "Ada", last_name: "Lovelace" },
+      }),
+    ).toBe("28/10 14:30 · Enviar propuesta (Acme rollout)");
+  });
+
+  it("names the contact of an older task without a deal", () => {
+    expect(
+      taskLine({
+        ...base,
+        contacts: { first_name: "Ada", last_name: "Lovelace" },
+      }),
+    ).toBe("28/10 14:30 · Enviar propuesta (Ada Lovelace)");
+  });
+
+  it("names nobody when the task has neither", () => {
+    expect(taskLine(base)).toBe("28/10 14:30 · Enviar propuesta");
   });
 });

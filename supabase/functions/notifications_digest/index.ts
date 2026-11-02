@@ -11,11 +11,12 @@ import {
   digestText,
   endOfWeek,
   formatDay,
-  formatDueDate,
   localDate,
+  taskLine,
   unpaidSubcommissionMonths,
   type ContractForDigest,
   type DigestSection,
+  type DigestTask,
 } from "./digest.ts";
 import { getMessages } from "./messages.ts";
 
@@ -92,18 +93,17 @@ const resumePostponedDeals = async (today: string) => {
   return { resumed: deals ?? [], notifications };
 };
 
-type TaskRow = {
+type TaskRow = DigestTask & {
   id: number;
-  text: string | null;
-  due_date: string;
   sales_id: number | null;
-  contacts: { first_name: string | null; last_name: string | null } | null;
 };
 
 const getOpenTasks = async (until: string): Promise<TaskRow[]> => {
   const { data, error } = await supabaseAdmin
     .from("tasks")
-    .select("id, text, due_date, sales_id, contacts(first_name, last_name)")
+    .select(
+      "id, text, due_date, sales_id, deals(name), contacts(first_name, last_name)",
+    )
     .is("done_date", null)
     .not("due_date", "is", null)
     .lte("due_date", until)
@@ -111,13 +111,6 @@ const getOpenTasks = async (until: string): Promise<TaskRow[]> => {
   if (error) throw error;
   // many-to-one embeds come back as objects
   return (data ?? []) as unknown as TaskRow[];
-};
-
-const taskLine = (task: TaskRow) => {
-  const who = [task.contacts?.first_name, task.contacts?.last_name]
-    .filter(Boolean)
-    .join(" ");
-  return `${formatDueDate(task.due_date)} · ${task.text ?? ""}${who ? ` (${who})` : ""}`;
 };
 
 /** Deals still waiting for a meeting to be scheduled after a week. */

@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { useValidateSingleActiveDeal } from "./activeDeal";
 import {
   LOST_REASONS,
   LOST_STAGE,
@@ -48,6 +49,8 @@ const DealInfoInputs = () => {
 
 const DealLinkedToInputs = () => {
   const translate = useTranslate();
+  // A company has at most one active deal
+  const validateSingleActiveDeal = useValidateSingleActiveDeal();
   return (
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">
@@ -61,7 +64,7 @@ const DealLinkedToInputs = () => {
       >
         <AutocompleteCompanyInput
           label="resources.deals.fields.company_id"
-          validate={required()}
+          validate={[required(), validateSingleActiveDeal]}
           modal
         />
       </ReferenceInput>

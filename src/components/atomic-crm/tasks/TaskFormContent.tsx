@@ -5,16 +5,17 @@ import { TextInput } from "@/components/admin/text-input";
 import { required } from "ra-core";
 import { DateTimeInput } from "@/components/admin";
 
-import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TaskAttendeesInput } from "./TaskAttendeesInput";
 
 export const TaskFormContent = ({
-  selectContact,
-  contactFilter,
+  selectDeal,
+  dealFilter,
 }: {
-  selectContact?: boolean;
-  // limits the contacts offered, e.g. to those of a company
-  contactFilter?: Record<string, unknown>;
+  // the deal is picked in the form instead of coming from the context
+  selectDeal?: boolean;
+  // limits the deals offered, e.g. to those of a company
+  dealFilter?: Record<string, unknown>;
 }) => {
   const { taskTypes } = useConfigurationContext();
   return (
@@ -27,15 +28,17 @@ export const TaskFormContent = ({
         className="m-0"
         helperText={false}
       />
-      {selectContact && (
+      {selectDeal && (
         <ReferenceInput
-          source="contact_id"
-          reference="contacts_summary"
-          filter={contactFilter}
+          source="deal_id"
+          reference="deals"
+          // tasks go to active deals only
+          filter={{ "archived_at@is": null, ...dealFilter }}
+          sort={{ field: "name", order: "ASC" }}
         >
           <AutocompleteInput
-            label="resources.tasks.fields.contact_id"
-            optionText={contactOptionText}
+            label="resources.tasks.fields.deal_id"
+            optionText="name"
             helperText={false}
             validate={required()}
             modal
@@ -59,6 +62,8 @@ export const TaskFormContent = ({
           helperText={false}
         />
       </div>
+
+      <TaskAttendeesInput />
     </div>
   );
 };

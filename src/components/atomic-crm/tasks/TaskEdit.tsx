@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { cleanupTaskAttendees } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
 export const TaskEdit = ({
@@ -35,6 +36,7 @@ export const TaskEdit = ({
           id={taskId}
           resource="tasks"
           className="mt-0"
+          transform={cleanupTaskAttendees}
           mutationOptions={{
             onSuccess: () => {
               close();

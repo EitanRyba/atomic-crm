@@ -19,12 +19,15 @@ describe("ContactShow", () => {
     mockIsMobile.mockReturnValue(true);
   });
 
-  it("renders a safe zero-task label before nb_tasks is available", async () => {
+  it("shows no tasks tab: tasks belong to deals", async () => {
     const screen = await render(<MobileSuccess />);
 
     await expect
-      .element(screen.getByRole("tab", { name: "0 tasks" }))
+      .element(screen.getByRole("tab", { name: /notes/i }))
       .toBeVisible();
+    await expect
+      .element(screen.getByRole("tab", { name: /tasks?/i }))
+      .not.toBeInTheDocument();
     await expect
       .poll(
         () => screen.container.textContent?.includes("%{smart_count}") ?? false,

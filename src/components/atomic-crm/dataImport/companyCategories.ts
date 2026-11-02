@@ -4,11 +4,13 @@ import type { ImportCell } from "./types";
 export type CompanyCategories = { is_client: boolean; is_referral: boolean };
 
 const CLIENT_WORDS = ["cliente", "client"];
-const REFERRAL_WORDS = ["referido", "referral"];
+// "referido" was the label before "referidor": older exports still use it
+const REFERRAL_WORDS = ["referidor", "referido", "referral"];
 
 /**
- * Reads the `category` column of a company CSV: "cliente", "referido" or
- * "cliente, referido" (also "client" and "referral"), whatever the case.
+ * Reads the `category` column of a company CSV: "cliente", "referidor" or
+ * "cliente, referidor" (also "referido", "client" and "referral"), whatever
+ * the case.
  * When it is empty or unknown, a company whose description starts with
  * "MULTIPLICADORA" is a referral company, any other one a client company.
  */

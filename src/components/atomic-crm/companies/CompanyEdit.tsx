@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Company } from "../types";
 import { CompanyInputs } from "./CompanyInputs";
 import { cleanupCompanyCategories } from "./companyCategories";
+import { cleanupCompanySites } from "./companySites";
 import { CompanyAside } from "./CompanyAside";
 import { PlaceholderCompanyNotice } from "./PlaceholderCompanyNotice";
 import { FormToolbar } from "../layout/FormToolbar";
@@ -17,7 +18,7 @@ export const CompanyEdit = () => (
       if (values.website && !values.website.startsWith("http")) {
         values.website = `https://${values.website}`;
       }
-      return cleanupCompanyCategories(values);
+      return cleanupCompanySites(cleanupCompanyCategories(values));
     }}
   >
     <CompanyEditContent />

@@ -36,7 +36,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
 import {
   AdditionalInfo,
-  AddressInfo,
+  SitesInfo,
   CompanyAside,
   CompanyInfo,
   ContextInfo,
@@ -85,7 +85,7 @@ const CompanyShowContentMobile = () => {
           {record.is_placeholder ? <PlaceholderCompanyNotice /> : null}
         </div>
         <CompanyInfo record={record} />
-        <AddressInfo record={record} />
+        <SitesInfo record={record} />
         <ContextInfo record={record} />
         <AdditionalInfo record={record} />
       </MobileContent>
@@ -177,10 +177,13 @@ const CompanyShowContent = () => {
                             fields={["last_name", "first_name", "last_seen"]}
                           />
                         )}
-                        <AddTask
-                          selectContact
-                          contactFilter={{ company_id: record.id }}
-                        />
+                        {/* tasks go to the company's active deal */}
+                        {record.nb_deals ? (
+                          <AddTask
+                            selectDeal
+                            dealFilter={{ company_id: record.id }}
+                          />
+                        ) : null}
                         <CreateRelatedContactButton />
                       </div>
                       <ContactsIterator />

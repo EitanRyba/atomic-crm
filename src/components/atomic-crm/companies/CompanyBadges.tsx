@@ -8,7 +8,7 @@ export const warningBadgeClassName =
   "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200";
 
 /**
- * The categories of a company ("Cliente", "Referido"), and a warning when it
+ * The categories of a company ("Cliente", "Referidor"), and a warning when it
  * has no contact yet. The "Por definir" system company has neither.
  */
 export const CompanyBadges = ({

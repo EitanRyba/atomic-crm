@@ -5,7 +5,7 @@ export const englishCrmMessages = {
       forcedCaseName: "Company",
       categories: {
         client: "Client",
-        referral: "Referral",
+        referral: "Referrer",
       },
       no_contact_defined: "No contact defined",
       referred_clients: "Referred clients",
@@ -23,6 +23,10 @@ export const englishCrmMessages = {
       },
       validation: {
         category_required: "Select at least one category",
+        contacts_required: "Link at least one contact to the company",
+        contact_missing: "Pick a contact or add a new one",
+        contact_incomplete:
+          "Fill in the first name, last name and email of the new contact",
       },
       delete_dialog: {
         title:
@@ -62,8 +66,9 @@ export const englishCrmMessages = {
         headcount_source: "Headcount source",
         current_competitor: "Current competitor",
         is_client: "Client company",
-        is_referral: "Referral company",
+        is_referral: "Referrer company",
         referred_by_company_id: "Referred by",
+        sites: "Sites",
       },
       empty: {
         description: "It seems your company list is empty.",
@@ -72,12 +77,30 @@ export const englishCrmMessages = {
       import: {
         title: "Import companies",
       },
+      site_fields: {
+        name: "Name",
+        name_placeholder: "E.g. Headquarters",
+        country: "Country",
+        address: "Address",
+        city: "City",
+        state: "State / Province",
+      },
+      contacts_input: {
+        existing: "Existing contact",
+        new: "New contact",
+        add: "Add contact",
+        help: "Link at least one contact: pick an existing one or add a new one.",
+        create_error:
+          "The company was created, but some contacts could not be saved",
+      },
       field_categories: {
         contact: "Contact",
         additional_info: "Additional information",
         address: "Address",
         context: "Context",
         prospecting: "Humand prospecting",
+        sites: "Sites",
+        contacts: "Contacts",
         categories: "Categories",
       },
       action: {
@@ -293,6 +316,10 @@ export const englishCrmMessages = {
       inputs: {
         linked_to: "Linked to",
       },
+      validation: {
+        company_has_active_deal:
+          "This company already has an active deal. Archive it before creating another one.",
+      },
       unarchived: {
         action: "Send back to the board",
         error: "Error: deal not unarchived",
@@ -500,6 +527,8 @@ export const englishCrmMessages = {
         due_date: "Due date",
         type: "Type",
         contact_id: "Contact",
+        deal_id: "Deal",
+        attendees: "Guests",
         due_short: "due",
       },
       action: {
@@ -523,7 +552,7 @@ export const englishCrmMessages = {
         edit_for: "Edit task for %{name}",
       },
       empty: "No tasks yet",
-      empty_list_hint: "Tasks added to your contacts will appear here.",
+      empty_list_hint: "Tasks added to your deals will appear here.",
       filters: {
         later: "Later",
         overdue: "Overdue",
@@ -533,6 +562,21 @@ export const englishCrmMessages = {
         with_pending: "With pending tasks",
       },
       regarding_contact: "(Re: %{name})",
+      regarding_deal: "(Re: %{name})",
+      pending: "Pending tasks",
+      attendees: {
+        title: "Guests",
+        empty: "No guests with an email for this deal.",
+        pick_deal: "Pick a deal to see its guests.",
+        help: "They get the Google Calendar invite with the Meet link.",
+        company: "Company",
+        referrer: "Referrer",
+        team: "Team",
+      },
+      meeting: {
+        scheduled: "Meeting scheduled: %{date}",
+        join: "Join with Google Meet",
+      },
       updated: "Task updated",
     },
     tags: {

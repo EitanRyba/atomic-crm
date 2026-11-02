@@ -7,7 +7,7 @@ export const spanishCrmMessages = {
       forcedCaseName: "Empresa",
       categories: {
         client: "Cliente",
-        referral: "Referido",
+        referral: "Referidor",
       },
       no_contact_defined: "Sin contacto definido",
       referred_clients: "Clientes referidos",
@@ -25,6 +25,10 @@ export const spanishCrmMessages = {
       },
       validation: {
         category_required: "Marcá al menos una categoría",
+        contacts_required: "Asociá al menos un contacto a la empresa",
+        contact_missing: "Elegí un contacto o cargá uno nuevo",
+        contact_incomplete:
+          "Completá nombre, apellido y email del contacto nuevo",
       },
       delete_dialog: {
         title:
@@ -63,8 +67,9 @@ export const spanishCrmMessages = {
         headcount_source: "Fuente de la dotación",
         current_competitor: "Competidor actual",
         is_client: "Empresa cliente",
-        is_referral: "Empresa de referido",
+        is_referral: "Empresa referidora",
         referred_by_company_id: "Referida por",
+        sites: "Sedes",
       },
       empty: {
         description: "Todavía no cargaste ninguna empresa.",
@@ -73,12 +78,30 @@ export const spanishCrmMessages = {
       import: {
         title: "Importar empresas",
       },
+      site_fields: {
+        name: "Nombre",
+        name_placeholder: "Ej.: Casa central",
+        country: "País",
+        address: "Dirección",
+        city: "Ciudad",
+        state: "Provincia / Estado",
+      },
+      contacts_input: {
+        existing: "Contacto existente",
+        new: "Contacto nuevo",
+        add: "Agregar contacto",
+        help: "Asociá al menos un contacto: elegí uno existente o cargá uno nuevo.",
+        create_error:
+          "La empresa se creó, pero no se pudieron guardar algunos contactos",
+      },
       field_categories: {
         contact: "Contacto",
         additional_info: "Información adicional",
         address: "Dirección",
         context: "Contexto",
         prospecting: "Prospección Humand",
+        sites: "Sedes",
+        contacts: "Contactos",
         categories: "Categorías",
       },
       action: {
@@ -295,6 +318,10 @@ export const spanishCrmMessages = {
       inputs: {
         linked_to: "Vinculada a",
       },
+      validation: {
+        company_has_active_deal:
+          "Esta empresa ya tiene una oportunidad activa. Archivala antes de crear otra.",
+      },
       unarchived: {
         action: "Devolver al tablero",
         error: "Error: no se pudo desarchivar la oportunidad",
@@ -360,12 +387,12 @@ export const spanishCrmMessages = {
       fields: {
         company_id: "Empresa cliente",
         deal_id: "Oportunidad ganada",
-        referral_company_id: "Empresa de referido",
+        referral_company_id: "Empresa referidora",
         first_payment_month: "Primer pago",
         end_month: "Último mes facturado",
         fee_history: "Fee mensual (USD)",
         commission_rules: "Mi comisión",
-        subcommission_rules: "Subcomisión al referido",
+        subcommission_rules: "Subcomisión al referidor",
         notes: "Notas",
         current_fee: "Fee actual",
         current_commission: "Comisión actual",
@@ -389,7 +416,7 @@ export const spanishCrmMessages = {
         commission_rules:
           "% del fee que te paga Humand, por mes de contrato. Por defecto: 50% los meses 1 a 12 y 30% después.",
         subcommission_rules:
-          "Lo que le debés al referido: un % de tu comisión o un monto fijo en USD por mes, durante un rango de meses de contrato (dejá el final vacío si no tiene). Varias líneas se suman.",
+          "Lo que le debés al referidor: un % de tu comisión o un monto fijo en USD por mes, durante un rango de meses de contrato (dejá el final vacío si no tiene). Varias líneas se suman.",
       },
       subcommission_kinds: {
         percent: "% de mi comisión",
@@ -504,6 +531,8 @@ export const spanishCrmMessages = {
         due_date: "Vencimiento",
         type: "Tipo",
         contact_id: "Contacto",
+        deal_id: "Oportunidad",
+        attendees: "Invitados",
         due_short: "vence",
       },
       action: {
@@ -528,7 +557,7 @@ export const spanishCrmMessages = {
       },
       empty: "Todavía no hay tareas",
       empty_list_hint:
-        "Las tareas que agregues a tus contactos van a aparecer acá.",
+        "Las tareas que agregues a tus oportunidades van a aparecer acá.",
       filters: {
         later: "Más adelante",
         overdue: "Vencidas",
@@ -538,6 +567,21 @@ export const spanishCrmMessages = {
         with_pending: "Con tareas pendientes",
       },
       regarding_contact: "(Re: %{name})",
+      regarding_deal: "(Re: %{name})",
+      pending: "Tareas pendientes",
+      attendees: {
+        title: "Invitados",
+        empty: "No hay invitados con email para esta oportunidad.",
+        pick_deal: "Elegí una oportunidad para ver los invitados.",
+        help: "Les llega la invitación de Google Calendar con el link de Meet.",
+        company: "Empresa",
+        referrer: "Referidora",
+        team: "Equipo",
+      },
+      meeting: {
+        scheduled: "Reunión agendada: %{date}",
+        join: "Unirse con Google Meet",
+      },
       updated: "Tarea actualizada",
     },
     tags: {

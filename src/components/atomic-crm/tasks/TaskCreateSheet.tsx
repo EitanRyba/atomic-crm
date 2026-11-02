@@ -1,62 +1,45 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   type Identifier,
-  useDataProvider,
   useGetIdentity,
   useGetOne,
-  useGetRecordRepresentation,
   useNotify,
   useTranslate,
-  useUpdate,
 } from "ra-core";
+
 import { CreateSheet } from "../misc/CreateSheet";
-import { foreignKeyMapping } from "../notes/foreignKeyMapping";
+import type { Deal } from "../types";
+import { cleanupTaskAttendees } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
-import { useQueryClient } from "@tanstack/react-query";
 
 export interface TaskCreateSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  contact_id?: Identifier;
+  // the deal of the task; picked in the form when missing
+  deal_id?: Identifier;
 }
 
 export const TaskCreateSheet = ({
   open,
   onOpenChange,
-  contact_id,
+  deal_id,
 }: TaskCreateSheetProps) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
-
-  const selectContact = contact_id == null;
-  const { data: contact } = useGetOne(
-    "contacts",
-    { id: contact_id! },
-    { enabled: !selectContact },
-  );
-  const [update] = useUpdate();
-  const dataProvider = useDataProvider();
   const queryClient = useQueryClient();
   const notify = useNotify();
 
+  const selectDeal = deal_id == null;
+  const { data: deal } = useGetOne<Deal>(
+    "deals",
+    { id: deal_id! },
+    { enabled: !selectDeal },
+  );
+
   if (!identity) return null;
 
-  const handleSuccess = async (data: any) => {
-    const referenceRecordId = data[foreignKeyMapping["contacts"]];
-    if (!referenceRecordId) return;
-    const { data: contact } = await dataProvider.getOne("contacts", {
-      id: referenceRecordId,
-    });
-    if (!contact) return;
-    await update("contacts", {
-      id: referenceRecordId as unknown as Identifier,
-      data: { last_seen: new Date().toISOString() },
-      previousData: contact,
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["contacts", "getOne"],
-    });
-
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
     notify("resources.tasks.added");
     // No redirect, only close the sheet
     onOpenChange(false);
@@ -67,9 +50,9 @@ export const TaskCreateSheet = ({
       resource="tasks"
       title={
         <span className="text-xl font-semibold truncate pr-10">
-          {!selectContact
+          {!selectDeal && deal
             ? translate("resources.tasks.dialog.create_for", {
-                name: getContactRepresentation(contact!),
+                name: deal.name,
               })
             : translate("resources.tasks.dialog.create")}
         </span>
@@ -77,17 +60,19 @@ export const TaskCreateSheet = ({
       redirect={false}
       record={{
         type: "none",
-        contact_id,
+        deal_id,
         due_date: new Date().toISOString(),
         sales_id: identity.id,
+        attendees: [],
       }}
+      transform={cleanupTaskAttendees}
       mutationOptions={{
         onSuccess: handleSuccess,
       }}
       open={open}
       onOpenChange={onOpenChange}
     >
-      <TaskFormContent selectContact={selectContact} />
+      <TaskFormContent selectDeal={selectDeal} />
     </CreateSheet>
   );
 };

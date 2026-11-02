@@ -27,7 +27,6 @@ import { ContactEditSheet } from "./ContactEditSheet";
 import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
-import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactPlaceholderCompany } from "./AssignCompanyButton";
@@ -61,8 +60,6 @@ const ContactShowContentMobile = () => {
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   if (isPending || !record) return null;
-
-  const taskCount = record.nb_tasks ?? 0;
 
   return (
     <>
@@ -136,14 +133,10 @@ const ContactShowContentMobile = () => {
         </div>
 
         <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          {/* Tasks belong to deals: contacts no longer list them */}
+          <TabsList className="grid w-full grid-cols-2 h-10">
             <TabsTrigger value="notes">
               {translate("resources.notes.name", { smart_count: 2 })}
-            </TabsTrigger>
-            <TabsTrigger value="tasks">
-              {translate("crm.common.task_count", {
-                smart_count: taskCount ?? 0,
-              })}
             </TabsTrigger>
             <TabsTrigger value="details">
               {translate("crm.common.details")}
@@ -181,10 +174,6 @@ const ContactShowContentMobile = () => {
             >
               <NotesIteratorMobile contactId={record.id} showStatus />
             </InfiniteListBase>
-          </TabsContent>
-
-          <TabsContent value="tasks" className="mt-4">
-            <ContactTasksList />
           </TabsContent>
 
           <TabsContent value="details" className="mt-4">

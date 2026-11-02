@@ -14,8 +14,12 @@ export const generateDeals = (db: Db): Deal[] => {
   const clients = db.companies.filter(
     (company) => company.is_client && !company.is_placeholder,
   );
-  const deals = Array.from(Array(50).keys()).map((id) => {
-    const company = random.arrayElement(clients);
+  // A company has at most one active deal
+  const dealCompanies = random.arrayElements(
+    clients,
+    Math.min(50, clients.length),
+  );
+  const deals = dealCompanies.map((company, id) => {
     company.nb_deals = (company.nb_deals ?? 0) + 1;
     const contacts = random.arrayElements(
       db.contacts.filter((contact) => contact.company_id === company.id),

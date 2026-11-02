@@ -365,10 +365,15 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       void syncTaskEvent("sync", result.data.id);
       return result;
     },
-    // Only the calendar sync writes the event id: a form opened before the
-    // sync must not erase it (the next sync would duplicate the event)
+    // Only the calendar sync writes the event id and the Meet link: a form
+    // opened before the sync must not erase them (the next sync would
+    // duplicate the event)
     beforeUpdate: async (params) => {
-      const { google_event_id: _eventId, ...data } = params.data;
+      const {
+        google_event_id: _eventId,
+        meet_url: _meetUrl,
+        ...data
+      } = params.data;
       return { ...params, data };
     },
     afterUpdate: async (result) => {
