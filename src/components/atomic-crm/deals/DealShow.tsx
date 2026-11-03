@@ -129,7 +129,7 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.amount")}
               </span>
-              <span className="text-sm">
+              <span className="text-sm font-semibold text-primary">
                 {record.amount.toLocaleString("en-US", {
                   notation: "compact",
                   style: "currency",
@@ -156,7 +156,7 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.stage")}
               </span>
-              <span className="text-sm">
+              <span className="w-fit rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground">
                 {findDealLabel(dealStages, record.stage)}
               </span>
             </div>
