@@ -577,6 +577,7 @@ export const frenchCrmMessages = {
         title: "Invités",
         empty: "Aucun invité avec un e-mail pour cette affaire.",
         pick_deal: "Choisissez une affaire pour voir ses invités.",
+        no_email: "pas d'e-mail, invitation impossible",
         help: "Ils reçoivent l'invitation Google Calendar avec le lien Meet.",
         company: "Entreprise",
         deal: "Affaire",

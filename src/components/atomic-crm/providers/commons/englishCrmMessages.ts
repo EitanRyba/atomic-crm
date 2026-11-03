@@ -569,6 +569,7 @@ export const englishCrmMessages = {
         title: "Guests",
         empty: "No guests with an email for this deal.",
         pick_deal: "Pick a deal to see its guests.",
+        no_email: "no email, can't be invited",
         help: "They get the Google Calendar invite with the Meet link.",
         company: "Company",
         deal: "Deal",

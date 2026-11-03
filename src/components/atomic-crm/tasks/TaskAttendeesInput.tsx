@@ -104,6 +104,20 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
     ],
   );
 
+  // Contacts nobody can invite, shown so the missing email gets noticed
+  const withoutEmail = useMemo(() => {
+    const all = [
+      ...(contacts ?? []),
+      ...(dealContactIds.length ? (dealContacts ?? []) : []),
+    ];
+    const names = all
+      .filter((contact) => !contact.email_jsonb?.some((e) => e?.email?.trim()))
+      .map((contact) =>
+        [contact.first_name, contact.last_name].filter(Boolean).join(" "),
+      );
+    return [...new Set(names)];
+  }, [contacts, dealContacts, dealContactIds.length]);
+
   const isPending =
     dealId == null ||
     isDealPending ||
@@ -112,7 +126,7 @@ const useAttendeeCandidates = (dealId: Identifier | null | undefined) => {
     (companyIds.length > 0 && isContactsPending) ||
     (dealContactIds.length > 0 && isDealContactsPending);
 
-  return { candidates, isPending };
+  return { candidates, withoutEmail, isPending };
 };
 
 /**
@@ -128,7 +142,7 @@ export const TaskAttendeesInput = () => {
     source: "attendees",
     defaultValue: [],
   });
-  const { candidates, isPending } = useAttendeeCandidates(dealId);
+  const { candidates, withoutEmail, isPending } = useAttendeeCandidates(dealId);
   const isMeeting = isMeetingTaskType(type);
 
   // A new meeting (or a task just turned into one) invites everyone; a saved
@@ -199,6 +213,18 @@ export const TaskAttendeesInput = () => {
             ))}
           </div>
         </>
+      )}
+      {!isPending && withoutEmail.length > 0 && (
+        <ul className="flex flex-col gap-1">
+          {withoutEmail.map((name) => (
+            <li key={name} className="text-sm text-muted-foreground">
+              {name}
+              <span className="ml-2 text-xs">
+                {translate("resources.tasks.attendees.no_email")}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </fieldset>
   );

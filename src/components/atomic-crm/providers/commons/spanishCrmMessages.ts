@@ -574,6 +574,7 @@ export const spanishCrmMessages = {
         title: "Invitados",
         empty: "No hay invitados con email para esta oportunidad.",
         pick_deal: "Elegí una oportunidad para ver los invitados.",
+        no_email: "sin email, no se puede invitar",
         help: "Les llega la invitación de Google Calendar con el link de Meet.",
         company: "Empresa",
         deal: "Oportunidad",

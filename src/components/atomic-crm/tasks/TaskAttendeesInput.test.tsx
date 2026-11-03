@@ -113,10 +113,11 @@ describe("Task guests", () => {
         .element(screen.getByRole("checkbox", { name: new RegExp(email) }))
         .toBeChecked();
     }
-    // Contacts without an email and the current user are not offered
+    // Contacts without an email are listed as not invitable; the current
+    // user is not offered
     await expect
       .element(screen.getByText("Nomail Client"))
-      .not.toBeInTheDocument();
+      .toHaveTextContent("no email, can't be invited");
     expect(screen.getByRole("checkbox").all()).toHaveLength(5);
 
     await screen
