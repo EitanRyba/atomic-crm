@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { isValid } from "date-fns";
-import { Archive, ArchiveRestore } from "lucide-react";
+import { Archive, ArchiveRestore, CalendarClock, Video } from "lucide-react";
 import {
   InfiniteListBase,
   ShowBase,
   useDataProvider,
+  useGetList,
   useNotify,
   useRecordContext,
   useRedirect,
@@ -17,6 +18,7 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
 import { ReferenceField } from "@/components/admin/reference-field";
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -26,8 +28,10 @@ import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, Task } from "../types";
 import { AddTask } from "../tasks/AddTask";
+import { TasksIterator } from "../tasks/TasksIterator";
+import { findNextMeeting } from "../tasks/meetingTasks";
 import { ContactList } from "./ContactList";
 import { CreateContractButton } from "./CreateContractButton";
 import { findDealLabel, formatISODateString } from "./dealUtils";
@@ -39,6 +43,7 @@ import {
   lostReasonKey,
 } from "./dealOutcome";
 import { DealTagsSection } from "./tags/DealTagsSection";
+import { ACTIVE_DEAL_ERROR, isActiveDealConflictError } from "./activeDeal";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -161,18 +166,9 @@ const DealShowContent = () => {
 
           <DealTagsSection deal={record} />
 
-          {!record.archived_at ? (
-            <div className="mx-4">
-              <AddTask
-                selectContact
-                contactFilter={
-                  record.contact_ids?.length
-                    ? { "id@in": `(${record.contact_ids.join(",")})` }
-                    : { company_id: record.company_id }
-                }
-              />
-            </div>
-          ) : null}
+          <NextMeeting deal={record} />
+
+          <DealTasks deal={record} />
 
           {!!record.contact_ids?.length && (
             <div className="m-4">
@@ -216,6 +212,69 @@ const DealShowContent = () => {
         </div>
       </div>
     </>
+  );
+};
+
+/** The tasks of the deal: pending ones (and those just checked), and the button to add one. */
+const DealTasks = ({ deal }: { deal: Deal }) => {
+  const translate = useTranslate();
+  return (
+    <div className="m-4">
+      <span className="text-xs text-muted-foreground tracking-wide">
+        {translate("resources.tasks.pending")}
+      </span>
+      <ReferenceManyField
+        target="deal_id"
+        reference="tasks"
+        sort={{ field: "due_date", order: "ASC" }}
+        perPage={1000}
+      >
+        <TasksIterator className="mt-2" />
+      </ReferenceManyField>
+      {!deal.archived_at ? <AddTask /> : null}
+    </div>
+  );
+};
+
+/** "Meeting scheduled: <date>": the next pending demo or meeting of the deal. */
+const NextMeeting = ({ deal }: { deal: Deal }) => {
+  const translate = useTranslate();
+  const [locale = "es"] = useLocaleState();
+  const { data: tasks } = useGetList<Task>("tasks", {
+    filter: { deal_id: deal.id, "done_date@is": null },
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "due_date", order: "ASC" },
+  });
+  const meeting = findNextMeeting(tasks);
+  if (!meeting) return null;
+
+  const date = new Date(meeting.due_date).toLocaleString(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="m-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border px-3 py-2 text-sm">
+      <span className="flex items-center gap-2 font-medium">
+        <CalendarClock className="w-4 h-4" />
+        {translate("resources.tasks.meeting.scheduled", { date })}
+      </span>
+      {meeting.meeting_title ? <span>{meeting.meeting_title}</span> : null}
+      {meeting.meet_url?.startsWith("https://") ? (
+        <a
+          href={meeting.meet_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 underline hover:no-underline"
+        >
+          <Video className="w-4 h-4" />
+          {translate("resources.tasks.meeting.join")}
+        </a>
+      ) : null}
+    </div>
   );
 };
 
@@ -362,10 +421,14 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       });
       refresh();
     },
-    onError: () => {
-      notify("resources.deals.unarchived.error", {
-        type: "error",
-      });
+    onError: (error) => {
+      // A company has at most one active deal
+      notify(
+        isActiveDealConflictError(error)
+          ? ACTIVE_DEAL_ERROR
+          : "resources.deals.unarchived.error",
+        { type: "error" },
+      );
     },
   });
 

@@ -10,21 +10,15 @@ import { EditButton } from "@/components/admin/edit-button";
 import { ShowButton } from "@/components/admin/show-button";
 import { TextField } from "@/components/admin/text-field";
 import { UrlField } from "@/components/admin/url-field";
-import { SelectField } from "@/components/admin/select-field";
 
 import { formatLocalizedDate } from "../misc/RelativeDate";
 import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
-import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
-import { sizes } from "./sizes";
+import { formatSiteLocation, getCompanySites } from "./companySites";
 import { CompanyDeleteButton } from "./CompanyDeleteButton";
 import { useGetSalesName } from "../sales/useGetSalesName";
-import {
-  competitorChoices,
-  continentChoices,
-  getChoiceLabel,
-} from "../misc/prospectingChoices";
+import { competitorChoices, getChoiceLabel } from "../misc/prospectingChoices";
 
 interface CompanyAsideProps {
   link?: string;
@@ -52,7 +46,7 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 
       <ProspectingInfo record={record} />
 
-      <AddressInfo record={record} />
+      <SitesInfo record={record} />
 
       <ContextInfo record={record} />
 
@@ -117,47 +111,21 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
   );
 };
 
+// Size, revenue and tax identifier are not edited anymore: only the sector
 export const ContextInfo = ({ record }: { record: Company }) => {
   const { companySectors } = useConfigurationContext();
   const translate = useTranslate();
-  if (!record.revenue && !record.id) {
-    return null;
-  }
-
   const sector = companySectors.find((s) => s.value === record.sector);
   const sectorLabel = sector?.label;
-  const translatedSizes = sizes.map((size) => ({
-    ...size,
-    name: getTranslatedCompanySizeLabel(size, translate),
-  }));
+  if (!sectorLabel) return null;
 
   return (
     <AsideSection
       title={translate("resources.companies.field_categories.context")}
     >
-      {sectorLabel && (
-        <span>
-          {translate("resources.companies.fields.sector")}: {sectorLabel}
-        </span>
-      )}
-      {record.size && (
-        <span>
-          {translate("resources.companies.fields.size")}:{" "}
-          <SelectField source="size" choices={translatedSizes} />
-        </span>
-      )}
-      {record.revenue && (
-        <span>
-          {translate("resources.companies.fields.revenue")}:{" "}
-          <TextField source="revenue" />
-        </span>
-      )}
-      {record.tax_identifier && (
-        <span>
-          {translate("resources.companies.fields.tax_identifier", {})}
-          : <TextField source="tax_identifier" />
-        </span>
-      )}
+      <span>
+        {translate("resources.companies.fields.sector")}: {sectorLabel}
+      </span>
     </AsideSection>
   );
 };
@@ -165,11 +133,6 @@ export const ContextInfo = ({ record }: { record: Company }) => {
 export const ProspectingInfo = ({ record }: { record: Company }) => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
-  const continentLabel = getChoiceLabel(
-    continentChoices,
-    record.continent,
-    translate,
-  );
   const competitorLabel = getChoiceLabel(
     competitorChoices,
     record.current_competitor,
@@ -187,8 +150,6 @@ export const ProspectingInfo = ({ record }: { record: Company }) => {
     !categories.length &&
     !isReferredClient &&
     !record.network &&
-    !record.country &&
-    !continentLabel &&
     !hasHeadcount &&
     !competitorLabel
   ) {
@@ -223,22 +184,10 @@ export const ProspectingInfo = ({ record }: { record: Company }) => {
           {field("network")}: {record.network}
         </span>
       )}
-      {(record.country || continentLabel) && (
-        <span>
-          {field("country")}:{" "}
-          {[record.country, continentLabel].filter(Boolean).join(" · ")}
-        </span>
-      )}
       {hasHeadcount && (
         <span>
           {field("headcount")}:{" "}
           {new Intl.NumberFormat(locale).format(record.headcount as number)}
-          {record.headcount_source && (
-            <span className="text-muted-foreground">
-              {" "}
-              ({record.headcount_source})
-            </span>
-          )}
         </span>
       )}
       {competitorLabel && (
@@ -250,27 +199,30 @@ export const ProspectingInfo = ({ record }: { record: Company }) => {
   );
 };
 
-export const AddressInfo = ({ record }: { record: Company }) => {
+/** The company sites, or its old address shown as a single site. */
+export const SitesInfo = ({ record }: { record: Company }) => {
   const translate = useTranslate();
-  if (
-    !record.address &&
-    !record.city &&
-    !record.zipcode &&
-    !record.state_abbr
-  ) {
-    return null;
-  }
+  const sites = getCompanySites(record);
+  if (!sites.length) return null;
 
   return (
     <AsideSection
-      title={translate("resources.companies.field_categories.address")}
-      noGap
+      title={translate("resources.companies.field_categories.sites")}
     >
-      <TextField source="address" />
-      <TextField source="city" />
-      <TextField source="zipcode" />
-      <TextField source="state_abbr" />
-      <TextField source="country" />
+      {sites.map((site, index) => {
+        const location = formatSiteLocation(site);
+        return (
+          <div key={index} className="flex flex-col">
+            {site.name ? (
+              <span className="font-medium">{site.name}</span>
+            ) : null}
+            {site.country ? <span>{site.country}</span> : null}
+            {location ? (
+              <span className="text-muted-foreground">{location}</span>
+            ) : null}
+          </div>
+        );
+      })}
     </AsideSection>
   );
 };

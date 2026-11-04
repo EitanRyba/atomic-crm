@@ -1,7 +1,9 @@
 import { ReferenceField } from "@/components/admin";
 import type { Identifier } from "ra-core";
-import { useGetRecordRepresentation, useTranslate } from "ra-core";
+import { useTranslate } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
+import type { Deal, Task } from "../types";
+import { cleanupTaskMeetingFields } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
 export interface TaskEditSheetProps {
@@ -16,20 +18,24 @@ export const TaskEditSheet = ({
   taskId,
 }: TaskEditSheetProps) => {
   const translate = useTranslate();
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
   return (
     <EditSheet
       resource="tasks"
       id={taskId}
       title={
-        <ReferenceField
-          source="contact_id"
-          reference="contacts"
+        <ReferenceField<Task, Deal>
+          source="deal_id"
+          reference="deals"
+          empty={
+            <span className="text-xl font-semibold truncate pr-10">
+              {translate("resources.tasks.sheet.edit")}
+            </span>
+          }
           render={({ referenceRecord }) => (
             <span className="text-xl font-semibold truncate pr-10">
               {referenceRecord
                 ? translate("resources.tasks.sheet.edit_for", {
-                    name: getContactRepresentation(referenceRecord),
+                    name: referenceRecord.name,
                   })
                 : translate("resources.tasks.sheet.edit")}
             </span>
@@ -37,6 +43,7 @@ export const TaskEditSheet = ({
         />
       }
       redirect={false}
+      transform={cleanupTaskMeetingFields}
       open={open}
       onOpenChange={onOpenChange}
     >

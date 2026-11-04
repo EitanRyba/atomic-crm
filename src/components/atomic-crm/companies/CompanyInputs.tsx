@@ -23,14 +23,11 @@ import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import {
   competitorChoices,
-  continentChoices,
   translateChoices,
 } from "../misc/prospectingChoices";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { validateCompanyCategories } from "./companyCategories";
 import type { Company, Sale } from "../types";
-import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
-import { sizes } from "./sizes";
 
 const isUrl = (url: string) => {
   if (!url) return;
@@ -60,7 +57,7 @@ export const CompanyInputs = () => {
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <div className="flex flex-col gap-8 flex-1">
           <CompanyProspectingInputs />
-          <CompanyAddressInputs />
+          <CompanySitesInputs />
           <CompanyAdditionalInformationInputs />
         </div>
       </div>
@@ -201,13 +198,10 @@ const CompanyContactInputs = () => {
   );
 };
 
+// Size, revenue and tax identifier are kept in the database but not edited
 const CompanyContextInputs = () => {
   const translate = useTranslate();
   const { companySectors } = useConfigurationContext();
-  const translatedSizes = sizes.map((size) => ({
-    ...size,
-    name: getTranslatedCompanySizeLabel(size, translate),
-  }));
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
@@ -222,9 +216,6 @@ const CompanyContextInputs = () => {
         optionValue="value"
         helperText={false}
       />
-      <SelectInput source="size" choices={translatedSizes} helperText={false} />
-      <TextInput source="revenue" helperText={false} />
-      <TextInput source="tax_identifier" helperText={false} />
     </div>
   );
 };
@@ -238,15 +229,9 @@ const CompanyProspectingInputs = () => {
           _: "Humand prospecting",
         })}
       </h6>
+      {/* Continent and headcount source are kept but not edited anymore */}
       <TextInput source="network" helperText={false} />
-      <SelectInput
-        source="continent"
-        choices={translateChoices(continentChoices, translate)}
-        translateChoice={false}
-        helperText={false}
-      />
       <NumberInput source="headcount" min={0} step={1} helperText={false} />
-      <TextInput source="headcount_source" helperText={false} />
       <SelectInput
         source="current_competitor"
         choices={translateChoices(competitorChoices, translate)}
@@ -257,20 +242,51 @@ const CompanyProspectingInputs = () => {
   );
 };
 
-const CompanyAddressInputs = () => {
+/**
+ * The company sites ("Sedes"). They replace the single address, whose columns
+ * are kept in the database but not edited anymore.
+ */
+const CompanySitesInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.companies.field_categories.address", {
-          _: "Address",
+        {translate("resources.companies.field_categories.sites", {
+          _: "Sites",
         })}
       </h6>
-      <TextInput source="address" helperText={false} />
-      <TextInput source="city" helperText={false} />
-      <TextInput source="zipcode" helperText={false} />
-      <TextInput source="state_abbr" helperText={false} />
-      <TextInput source="country" helperText={false} />
+      <ArrayInput source="sites" label={false} helperText={false}>
+        <SimpleFormIterator disableReordering disableClear fullWidth>
+          <TextInput
+            source="name"
+            label="resources.companies.site_fields.name"
+            placeholder={translate(
+              "resources.companies.site_fields.name_placeholder",
+            )}
+            helperText={false}
+          />
+          <TextInput
+            source="country"
+            label="resources.companies.site_fields.country"
+            helperText={false}
+          />
+          <TextInput
+            source="address"
+            label="resources.companies.site_fields.address"
+            helperText={false}
+          />
+          <TextInput
+            source="city"
+            label="resources.companies.site_fields.city"
+            helperText={false}
+          />
+          <TextInput
+            source="state"
+            label="resources.companies.site_fields.state"
+            helperText={false}
+          />
+        </SimpleFormIterator>
+      </ArrayInput>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import {
 
 import { randomDate } from "./utils";
 import { PLACEHOLDER_COMPANY_NAME } from "../../../companies/placeholderCompany";
+import { sitesFromAddress } from "../../../companies/companySites";
 import { defaultCompanySectors } from "../../../root/defaultConfiguration";
 import type { Company, RAFile } from "../../../types";
 import type { Db } from "./types";
@@ -65,9 +66,14 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
         referred_by_company_id: null,
         referred_by_name: null,
         nb_referred_clients: 0,
+        sites: [],
       };
     },
   );
+
+  companies.forEach((company) => {
+    company.sites = sitesFromAddress(company);
+  });
 
   // A quarter of the clients were introduced by a referral company
   const referrals = companies.filter((company) => company.is_referral);
@@ -120,4 +126,5 @@ const generatePlaceholderCompany = (id: number): Required<Company> => ({
   referred_by_company_id: null,
   referred_by_name: null,
   nb_referred_clients: 0,
+  sites: [],
 });

@@ -654,18 +654,9 @@ export const createDataProvider = ({
       {
         resource: "tasks",
         afterCreate: async (result, dataProvider) => {
-          // update the task count in the related contact
-          const { contact_id } = result.data;
-          const { data: contact } = await dataProvider.getOne("contacts", {
-            id: contact_id,
-          });
-          await dataProvider.update("contacts", {
-            id: contact_id,
-            data: {
-              nb_tasks: (contact.nb_tasks ?? 0) + 1,
-            },
-            previousData: contact,
-          });
+          // update the task count in the related contact (older tasks only:
+          // new tasks belong to deals)
+          await adjustContactTaskCount(dataProvider, result.data.contact_id, 1);
           return result;
         },
         beforeUpdate: async (params) => {
@@ -681,37 +672,22 @@ export const createDataProvider = ({
         },
         afterUpdate: async (result, dataProvider) => {
           // update the contact: if the task is done, decrement the nb tasks, otherwise increment it
-          const { contact_id } = result.data;
-          const { data: contact } = await dataProvider.getOne("contacts", {
-            id: contact_id,
-          });
           if (taskUpdateType !== TASK_DONE_NOT_CHANGED) {
-            await dataProvider.update("contacts", {
-              id: contact_id,
-              data: {
-                nb_tasks:
-                  taskUpdateType === TASK_MARKED_AS_DONE
-                    ? (contact.nb_tasks ?? 0) - 1
-                    : (contact.nb_tasks ?? 0) + 1,
-              },
-              previousData: contact,
-            });
+            await adjustContactTaskCount(
+              dataProvider,
+              result.data.contact_id,
+              taskUpdateType === TASK_MARKED_AS_DONE ? -1 : 1,
+            );
           }
           return result;
         },
         afterDelete: async (result, dataProvider) => {
           // update the task count in the related contact
-          const { contact_id } = result.data;
-          const { data: contact } = await dataProvider.getOne("contacts", {
-            id: contact_id,
-          });
-          await dataProvider.update("contacts", {
-            id: contact_id,
-            data: {
-              nb_tasks: (contact.nb_tasks ?? 0) - 1,
-            },
-            previousData: contact,
-          });
+          await adjustContactTaskCount(
+            dataProvider,
+            result.data.contact_id,
+            -1,
+          );
           return result;
         },
       } satisfies ResourceCallbacks<Task>,
@@ -978,3 +954,20 @@ const stageDetails = (data: Partial<Deal>, now: string): Partial<Deal> => ({
     ? { postponed_at: data.postponed_at ?? now }
     : { postponed_until: null, postponed_reason: null, postponed_at: null }),
 });
+
+/** Keeps contacts_summary.nb_tasks of a task's contact, when it has one. */
+const adjustContactTaskCount = async (
+  dataProvider: DataProvider,
+  contactId: Identifier | null | undefined,
+  delta: number,
+) => {
+  if (contactId == null) return;
+  const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
+    id: contactId,
+  });
+  await dataProvider.update("contacts", {
+    id: contactId,
+    data: { nb_tasks: (contact.nb_tasks ?? 0) + delta },
+    previousData: contact,
+  });
+};

@@ -60,6 +60,29 @@ export const formatDueDate = (timestamp: string): string => {
   return `${part("day")}/${part("month")} ${part("hour")}:${part("minute")}`;
 };
 
+/** A task of the digest, with its deal (or, for older tasks, its contact). */
+export type DigestTask = {
+  text: string | null;
+  // demo and meeting tasks have a title, and maybe no text
+  meeting_title?: string | null;
+  due_date: string;
+  deals: { name: string | null } | null;
+  contacts: { first_name: string | null; last_name: string | null } | null;
+};
+
+/** "28/10 14:30 · Call back (Deal name)": the deal, else the contact. */
+export const taskLine = (task: DigestTask): string => {
+  const who =
+    task.deals?.name ||
+    [task.contacts?.first_name, task.contacts?.last_name]
+      .filter(Boolean)
+      .join(" ");
+  const what = [task.meeting_title?.trim(), task.text?.trim()]
+    .filter(Boolean)
+    .join(" · ");
+  return `${formatDueDate(task.due_date)} · ${what}${who ? ` (${who})` : ""}`;
+};
+
 type MonthRule = { from_month: number; to_month?: number | null };
 
 export type ContractForDigest = {

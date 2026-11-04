@@ -5,16 +5,27 @@ import { TextInput } from "@/components/admin/text-input";
 import { required } from "ra-core";
 import { DateTimeInput } from "@/components/admin";
 
-import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { MeetingTitleInput } from "./MeetingTitleInput";
+import { TaskAttendeesInput } from "./TaskAttendeesInput";
+import { isMeetingTaskType } from "./meetingTasks";
+
+const requiredText = required();
+
+// A demo or meeting has a title: its description is optional
+const validateText = (value: unknown, values: Record<string, unknown>) =>
+  isMeetingTaskType(values?.type as string | undefined)
+    ? undefined
+    : requiredText(value, values);
 
 export const TaskFormContent = ({
-  selectContact,
-  contactFilter,
+  selectDeal,
+  dealFilter,
 }: {
-  selectContact?: boolean;
-  // limits the contacts offered, e.g. to those of a company
-  contactFilter?: Record<string, unknown>;
+  // the deal is picked in the form instead of coming from the context
+  selectDeal?: boolean;
+  // limits the deals offered, e.g. to those of a company
+  dealFilter?: Record<string, unknown>;
 }) => {
   const { taskTypes } = useConfigurationContext();
   return (
@@ -22,20 +33,22 @@ export const TaskFormContent = ({
       <TextInput
         autoFocus
         source="text"
-        validate={required()}
+        validate={validateText}
         multiline
         className="m-0"
         helperText={false}
       />
-      {selectContact && (
+      {selectDeal && (
         <ReferenceInput
-          source="contact_id"
-          reference="contacts_summary"
-          filter={contactFilter}
+          source="deal_id"
+          reference="deals"
+          // tasks go to active deals only
+          filter={{ "archived_at@is": null, ...dealFilter }}
+          sort={{ field: "name", order: "ASC" }}
         >
           <AutocompleteInput
-            label="resources.tasks.fields.contact_id"
-            optionText={contactOptionText}
+            label="resources.tasks.fields.deal_id"
+            optionText="name"
             helperText={false}
             validate={required()}
             modal
@@ -59,6 +72,10 @@ export const TaskFormContent = ({
           helperText={false}
         />
       </div>
+
+      <MeetingTitleInput />
+
+      <TaskAttendeesInput />
     </div>
   );
 };

@@ -26,6 +26,10 @@ export const frenchCrmMessages = {
       },
       validation: {
         category_required: "Cochez au moins une catégorie",
+        contacts_required: "Associez au moins un contact à l'entreprise",
+        contact_missing: "Choisissez un contact ou créez-en un nouveau",
+        contact_incomplete:
+          "Renseignez le prénom, le nom et l'e-mail du nouveau contact",
       },
       delete_dialog: {
         title:
@@ -67,6 +71,7 @@ export const frenchCrmMessages = {
         is_client: "Entreprise cliente",
         is_referral: "Entreprise apporteuse",
         referred_by_company_id: "Recommandée par",
+        sites: "Sites",
       },
       empty: {
         description: "Il semble que la liste de vos entreprises soit vide.",
@@ -75,12 +80,30 @@ export const frenchCrmMessages = {
       import: {
         title: "Importer des entreprises",
       },
+      site_fields: {
+        name: "Nom",
+        name_placeholder: "Ex. : Siège",
+        country: "Pays",
+        address: "Adresse",
+        city: "Ville",
+        state: "Région / État",
+      },
+      contacts_input: {
+        existing: "Contact existant",
+        new: "Nouveau contact",
+        add: "Ajouter un contact",
+        help: "Associez au moins un contact : choisissez-en un existant ou créez-en un nouveau.",
+        create_error:
+          "L'entreprise a été créée, mais certains contacts n'ont pas pu être enregistrés",
+      },
       field_categories: {
         contact: "Contact",
         additional_info: "Informations supplémentaires",
         address: "Adresse",
         context: "Contexte",
         prospecting: "Prospection Humand",
+        sites: "Sites",
+        contacts: "Contacts",
         categories: "Catégories",
       },
       action: {
@@ -298,6 +321,10 @@ export const frenchCrmMessages = {
       inputs: {
         linked_to: "Lié à",
       },
+      validation: {
+        company_has_active_deal:
+          "Cette entreprise a déjà une affaire active. Archivez-la avant d'en créer une autre.",
+      },
       unarchived: {
         action: "Renvoyer au tableau",
         error: "Erreur : affaire non désarchivée",
@@ -508,6 +535,9 @@ export const frenchCrmMessages = {
         due_date: "Date d'échéance",
         type: "Type",
         contact_id: "Contact",
+        deal_id: "Affaire",
+        meeting_title: "Titre de la réunion",
+        attendees: "Invités",
         due_short: "échéance",
       },
       action: {
@@ -531,7 +561,7 @@ export const frenchCrmMessages = {
         edit_for: "Modifier la tâche pour %{name}",
       },
       empty: "Aucune tâche pour l'instant",
-      empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
+      empty_list_hint: "Les tâches ajoutées à vos affaires apparaîtront ici.",
       filters: {
         later: "Plus tard",
         overdue: "En retard",
@@ -541,6 +571,23 @@ export const frenchCrmMessages = {
         with_pending: "Avec des tâches en attente",
       },
       regarding_contact: "(Concernant : %{name})",
+      regarding_deal: "(Re : %{name})",
+      pending: "Tâches en attente",
+      attendees: {
+        title: "Invités",
+        empty: "Aucun invité avec un e-mail pour cette affaire.",
+        pick_deal: "Choisissez une affaire pour voir ses invités.",
+        no_email: "pas d'e-mail, invitation impossible",
+        help: "Ils reçoivent l'invitation Google Calendar avec le lien Meet.",
+        company: "Entreprise",
+        deal: "Affaire",
+        referrer: "Apporteur",
+        team: "Équipe",
+      },
+      meeting: {
+        scheduled: "Réunion prévue : %{date}",
+        join: "Rejoindre avec Google Meet",
+      },
       updated: "Tâche mise à jour",
     },
     tags: {

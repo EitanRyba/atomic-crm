@@ -89,7 +89,17 @@ export type Company = {
   referred_by_name?: string | null;
   /** Number of client companies this referral company introduced */
   nb_referred_clients?: number;
+  /** The company sites ("Sedes"); the old address columns are not edited anymore */
+  sites?: CompanySite[];
 } & Pick<RaRecord, "id">;
+
+export interface CompanySite {
+  name?: string | null;
+  country?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+}
 
 /**
  * What happens to the contacts of a deleted company: they move to the
@@ -259,8 +269,15 @@ export type Tag = {
   color: string;
 };
 
+export interface TaskAttendee {
+  email: string;
+  name: string;
+}
+
 export type Task = {
-  contact_id: Identifier;
+  /** Tasks belong to deals; older tasks may only have a contact */
+  deal_id?: Identifier | null;
+  contact_id?: Identifier | null;
   type: string;
   text: string;
   due_date: string;
@@ -268,6 +285,12 @@ export type Task = {
   sales_id?: Identifier;
   // written by the Google Calendar sync only
   google_event_id?: string | null;
+  /** Guests of a demo or meeting task */
+  attendees?: TaskAttendee[];
+  /** Title of a demo or meeting: the calendar event summary the guests see */
+  meeting_title?: string | null;
+  /** Google Meet link of the calendar event, written by the calendar sync */
+  meet_url?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

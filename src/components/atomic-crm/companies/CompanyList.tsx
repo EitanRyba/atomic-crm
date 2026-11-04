@@ -94,10 +94,13 @@ const exporter: Exporter<Company> = (records) => {
       is_placeholder: _isPlaceholder,
       referred_by_company_id: _referredById,
       referred_by_name,
+      sites,
       ...company
     }) => ({
       ...company,
-      category: [is_client && "cliente", is_referral && "referido"]
+      // read back by the company import
+      sites: JSON.stringify(sites ?? []),
+      category: [is_client && "cliente", is_referral && "referidor"]
         .filter(Boolean)
         .join(", "),
       referred_by: referred_by_name ?? "",

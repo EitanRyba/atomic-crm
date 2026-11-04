@@ -111,6 +111,8 @@ const NavigationButton = ({
 const CreateButton = () => {
   const translate = useTranslate();
   const contact_id = useMatch("/contacts/:id/*")?.params.id;
+  // tasks belong to deals: on a deal page, the new task goes to that deal
+  const deal_id = useMatch("/deals/:id/*")?.params.id;
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
@@ -129,7 +131,7 @@ const CreateButton = () => {
       <TaskCreateSheet
         open={taskCreateOpen}
         onOpenChange={setTaskCreateOpen}
-        contact_id={contact_id}
+        deal_id={deal_id}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

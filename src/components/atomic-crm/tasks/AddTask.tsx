@@ -1,14 +1,12 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import {
   CreateBase,
   Form,
-  useDataProvider,
   useGetIdentity,
-  useGetRecordRepresentation,
   useNotify,
   useRecordContext,
   useTranslate,
-  useUpdate,
 } from "ra-core";
 import { useState } from "react";
 import { SaveButton } from "@/components/admin/form";
@@ -27,43 +25,37 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import type { Deal } from "../types";
+import { cleanupTaskMeetingFields } from "./meetingTasks";
 import { TaskFormContent } from "./TaskFormContent";
 
+/**
+ * Adds a task to a deal: the deal in the record context, or one picked in the
+ * form with `selectDeal` (e.g. from the dashboard).
+ */
 export const AddTask = ({
-  selectContact,
-  contactFilter,
+  selectDeal,
+  dealFilter,
   display = "chip",
 }: {
-  selectContact?: boolean;
-  // with selectContact: limits the contacts offered (e.g. a company's)
-  contactFilter?: Record<string, unknown>;
+  selectDeal?: boolean;
+  // with selectDeal: limits the deals offered (e.g. a company's)
+  dealFilter?: Record<string, unknown>;
   display?: "chip" | "icon";
 }) => {
   const { identity } = useGetIdentity();
-  const dataProvider = useDataProvider();
-  const [update] = useUpdate();
   const notify = useNotify();
   const translate = useTranslate();
-  const contact = useRecordContext();
+  const queryClient = useQueryClient();
+  const deal = useRecordContext<Deal>();
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
     setOpen(true);
   };
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
-  const handleSuccess = async (data: any) => {
+  const handleSuccess = () => {
     setOpen(false);
-    const contact = await dataProvider.getOne("contacts", {
-      id: data.contact_id,
-    });
-    if (!contact.data) return;
-
-    await update("contacts", {
-      id: contact.data.id,
-      data: { last_seen: new Date().toISOString() },
-      previousData: contact.data,
-    });
-
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
     notify("resources.tasks.added");
   };
 
@@ -80,6 +72,7 @@ export const AddTask = ({
                 variant="ghost"
                 className="p-2 cursor-pointer"
                 onClick={handleOpen}
+                aria-label={translate("resources.tasks.action.create")}
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -107,33 +100,37 @@ export const AddTask = ({
         resource="tasks"
         record={{
           type: "none",
-          // the record in context is a contact unless one must be picked
-          contact_id: selectContact ? undefined : contact?.id,
+          // the record in context is a deal unless one must be picked
+          deal_id: selectDeal ? undefined : deal?.id,
           due_date: new Date().toISOString(),
           sales_id: identity.id,
+          attendees: [],
         }}
+        transform={cleanupTaskMeetingFields}
         mutationOptions={{ onSuccess: handleSuccess }}
       >
         <Dialog open={open} onOpenChange={() => setOpen(false)}>
           <DialogContent className="lg:max-w-xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-            <Form className="flex flex-col gap-4">
-              <DialogHeader>
-                <DialogTitle>
-                  {!selectContact
-                    ? translate("resources.tasks.dialog.create_for", {
-                        name: getContactRepresentation(contact!),
-                      })
-                    : translate("resources.tasks.dialog.create")}
-                </DialogTitle>
-              </DialogHeader>
-              <TaskFormContent
-                selectContact={selectContact}
-                contactFilter={contactFilter}
-              />
-              <DialogFooter className="w-full justify-end">
-                <SaveButton />
-              </DialogFooter>
-            </Form>
+            {open ? (
+              <Form className="flex flex-col gap-4">
+                <DialogHeader>
+                  <DialogTitle>
+                    {!selectDeal && deal
+                      ? translate("resources.tasks.dialog.create_for", {
+                          name: deal.name,
+                        })
+                      : translate("resources.tasks.dialog.create")}
+                  </DialogTitle>
+                </DialogHeader>
+                <TaskFormContent
+                  selectDeal={selectDeal}
+                  dealFilter={dealFilter}
+                />
+                <DialogFooter className="w-full justify-end">
+                  <SaveButton />
+                </DialogFooter>
+              </Form>
+            ) : null}
           </DialogContent>
         </Dialog>
       </CreateBase>

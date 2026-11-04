@@ -9,6 +9,8 @@ const both = { is_client: true, is_referral: true };
 describe("parseCompanyCategories", () => {
   it.each([
     ["cliente", client],
+    ["referidor", referral],
+    ["cliente, Referidor", both],
     ["referido", referral],
     ["cliente, referido", both],
     ["Referido,Cliente", both],
