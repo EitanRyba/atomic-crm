@@ -9,7 +9,11 @@ const axisStyle = {
   legend: { text: { fill: "var(--color-muted-foreground)" } },
 };
 
-const NET_COLOR = "#2f9e8f";
+// Grid lines follow the theme border so they stay faint on the dark canvas.
+const chartTheme = { grid: { line: { stroke: "var(--color-border)" } } };
+
+// SVG fill attributes can't resolve CSS variables, so the accent is repeated.
+const NET_COLOR = "#1ed760";
 const SUBCOMMISSION_COLOR = "#e8a54b";
 
 /**
@@ -43,6 +47,7 @@ export const BillingChart = ({ totals }: { totals: MonthTotals[] }) => {
           indexBy="month"
           keys={[netLabel, subcommissionLabel]}
           colors={[NET_COLOR, SUBCOMMISSION_COLOR]}
+          theme={chartTheme}
           margin={{ top: 10, right: 60, bottom: 40, left: 10 }}
           padding={0.3}
           enableLabel={false}

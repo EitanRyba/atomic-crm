@@ -54,7 +54,7 @@ export const DealColumn = ({
             </Tooltip>
           ) : null}
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-semibold text-primary">
           {totalAmount.toLocaleString("en-US", {
             notation: "compact",
             style: "currency",
